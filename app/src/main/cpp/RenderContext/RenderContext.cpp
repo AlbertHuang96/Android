@@ -3,14 +3,14 @@
 
 #include "TriangleSample.h"
 #include "Model3DSample.h"
-
+#include "DeferredShadingGBuffer.h"
 
 RenderContext* RenderContext::mContext = nullptr;
 
 RenderContext::RenderContext()
 {
     //rCurrentSample = new TriangleSample();
-    rCurrentSample = new Model3DSample();
+    rCurrentSample = new GBufferDeferredShading();
 }
 
 

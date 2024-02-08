@@ -6,7 +6,7 @@
 #define RENDERPLAYGROUND_RENDERCONTEXT_H
 
 #include <GLES3/gl3.h>
-#include "SampleBaseGL.h"
+#include "RenderInterface.h"
 
 class RenderContext
 {
@@ -24,7 +24,7 @@ public:
 
 private:
     static RenderContext *mContext;
-    SampleBaseGL* rCurrentSample;
+    RenderInterface* rCurrentSample;
     int rScreenW;
     int rScreenH;
 };

@@ -8,11 +8,11 @@
 
 #include <detail/type_mat.hpp>
 #include <detail/type_mat4x4.hpp>
-#include <shader.h>
+#include <shader.cpp>
 #include <model.cpp>
-#include "SampleBaseGL.h"
+#include "RenderInterface.h"
 
-class Model3DSample : public SampleBaseGL
+class Model3DSample : public RenderInterface
 {
 public:
 	Model3DSample();

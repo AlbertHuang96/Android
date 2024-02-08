@@ -6,7 +6,7 @@ set(jnilibs "${CMAKE_SOURCE_DIR}/../jniLibs")
 
 include_directories(
         RenderContext
-        sample
+        DeferredShading
         util
         glm
         inc
@@ -21,10 +21,12 @@ include_directories(
 # Gradle automatically packages shared libraries with your APK.
 file(GLOB src-files
         ${CMAKE_SOURCE_DIR}/*.cpp
-        ${CMAKE_SOURCE_DIR}/sample/Model3DSample.cpp
-        ${CMAKE_SOURCE_DIR}/sample/TriangleSample.cpp
+        ${CMAKE_SOURCE_DIR}/DeferredShading/DeferredShadingGBuffer.cpp
+        ${CMAKE_SOURCE_DIR}/DeferredShading/Model3DSample.cpp
+        ${CMAKE_SOURCE_DIR}/DeferredShading/TriangleSample.cpp
         ${CMAKE_SOURCE_DIR}/model/model.cpp
         ${CMAKE_SOURCE_DIR}/model/mesh.cpp
+        ${CMAKE_SOURCE_DIR}/model/shader.cpp
         ${CMAKE_SOURCE_DIR}/util/*.cpp
         ${CMAKE_SOURCE_DIR}/RenderContext/*.cpp)
 

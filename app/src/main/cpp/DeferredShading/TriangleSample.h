@@ -2,9 +2,9 @@
 // Created by 86422 on 2024/2/1.
 //
 
-#include "SampleBaseGL.h"
+#include "RenderInterface.h"
 
-class TriangleSample : public SampleBaseGL
+class TriangleSample : public RenderInterface
 {
 public:
     TriangleSample();

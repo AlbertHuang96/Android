@@ -29,5 +29,9 @@ public:
     {
         glUniform1i(glGetUniformLocation(programId, name.c_str()), (int) value);
     }
+
+    static void setInt(GLuint programId, const std::string &name, int value) {
+        glUniform1i(glGetUniformLocation(programId, name.c_str()), value);
+    }
 };
 #endif //RENDERPLAYGROUND_UTILGL_H

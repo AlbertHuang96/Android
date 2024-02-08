@@ -6,7 +6,7 @@
 #include "../inc/assimp/Importer.hpp"
 #include "../inc/assimp/scene.h"
 #include "../inc/assimp/postprocess.h"
-#include <shader.h>
+#include <shader.cpp>
 #include <string>
 #include <fstream>
 #include <sstream>

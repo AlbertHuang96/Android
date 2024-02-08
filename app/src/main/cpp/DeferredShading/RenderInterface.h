@@ -2,8 +2,8 @@
 // Created by 86422 on 2024/2/1.
 //
 
-#ifndef RENDERPLAYGROUND_SAMPLEBASEGL_H
-#define RENDERPLAYGROUND_SAMPLEBASEGL_H
+#ifndef RENDERPLAYGROUND_RENDERINTERFACE_H
+#define RENDERPLAYGROUND_RENDERINTERFACE_H
 
 #include <GLES3/gl3.h>
 
@@ -11,16 +11,16 @@
 
 #define DEFAULT_OGL_ASSETS_DIR "/sdcard/Android/data/com.example.renderplayground/files/Download"
 
-class SampleBaseGL
+class RenderInterface
 {
 public:
-    SampleBaseGL()
+    RenderInterface()
     {
         rProgramID      = 0;
         rVertesShader   = 0;
         rFragmentShader = 0;
     }
-    virtual ~SampleBaseGL()
+    virtual ~RenderInterface()
     {
 
     }
@@ -37,4 +37,4 @@ protected:
     GLuint rFragmentShader;
 
 };
-#endif //RENDERPLAYGROUND_SAMPLEBASEGL_H
+#endif //RENDERPLAYGROUND_RENDERINTERFACE_H
