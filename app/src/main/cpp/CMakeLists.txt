@@ -4,6 +4,12 @@ cmake_minimum_required(VERSION 3.4.1)
 
 set(jnilibs "${CMAKE_SOURCE_DIR}/../jniLibs")
 
+if((${CMAKE_ANDROID_ARCH_ABI} STREQUAL "arm64-v8a") OR (${CMAKE_ANDROID_ARCH_ABI} STREQUAL "armeabi-v7a"))
+    add_definitions("-DHAVE_NEON=1")
+    set_property(SOURCE ${CMAKE_SOURCE_DIR}/DeferredShading/ImageProcessNeon.cpp
+            APPEND_STRING PROPERTY COMPILE_OPTIONS "-mfpu=neon")
+endif()
+
 include_directories(
         RenderContext
         DeferredShading
@@ -24,6 +30,7 @@ file(GLOB src-files
         ${CMAKE_SOURCE_DIR}/DeferredShading/DeferredShadingGBuffer.cpp
         ${CMAKE_SOURCE_DIR}/DeferredShading/Model3DSample.cpp
         ${CMAKE_SOURCE_DIR}/DeferredShading/TriangleSample.cpp
+        ${CMAKE_SOURCE_DIR}/DeferredShading/ImageProcessNeon.cpp
         ${CMAKE_SOURCE_DIR}/model/model.cpp
         ${CMAKE_SOURCE_DIR}/model/mesh.cpp
         ${CMAKE_SOURCE_DIR}/model/shader.cpp
@@ -65,7 +72,6 @@ set(third-party-libs
 
 target_link_libraries( # Specifies the target library.
         RangerEngine
-
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib}
@@ -74,4 +80,5 @@ target_link_libraries( # Specifies the target library.
         EGL
         GLESv3
         android
+        jnigraphics
         )

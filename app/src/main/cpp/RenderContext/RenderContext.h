@@ -22,6 +22,8 @@ public:
     static RenderContext* GetInstance();
     static void DestroyInstance();
 
+    void SetImageData(int format, int width, int height, uint8_t *pData);
+
 private:
     static RenderContext *mContext;
     RenderInterface* rCurrentSample;

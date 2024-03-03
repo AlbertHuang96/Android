@@ -17,32 +17,36 @@ Java_com_example_renderplayground_MainActivity_native_1Helloworld(JNIEnv *env, j
 
 
 JNIEXPORT void JNICALL
-Java_com_example_renderplayground_RenderNative_native_1OnSurfaceCreated(JNIEnv *env, jobject thiz) {
+Java_com_example_renderplayground_RenderNative_native_1OnSurfaceCreated(JNIEnv *env, jobject thiz)
+{
     // TODO: implement native_OnSurfaceCreated()
     RenderContext::GetInstance()->OnSurfaceCreated();
 }
 
 JNIEXPORT void JNICALL
-Java_com_example_renderplayground_RenderNative_native_1OnSurfaceChanged(JNIEnv *env, jobject thiz,
-                                                                        jint width, jint height) {
+Java_com_example_renderplayground_RenderNative_native_1OnSurfaceChanged(JNIEnv *env, jobject thiz, jint width, jint height)
+{
     // TODO: implement native_OnSurfaceChanged()
     RenderContext::GetInstance()->OnSurfaceChanged(width, height);
 }
 
 JNIEXPORT void JNICALL
-Java_com_example_renderplayground_RenderNative_native_1OnDrawFrame(JNIEnv *env, jobject thiz) {
+Java_com_example_renderplayground_RenderNative_native_1OnDrawFrame(JNIEnv *env, jobject thiz)
+{
     // TODO: implement native_OnDrawFrame()
     RenderContext::GetInstance()->OnDrawFrame();
 }
 
 JNIEXPORT void JNICALL
-Java_com_example_renderplayground_RenderNative_native_1Init(JNIEnv *env, jobject thiz) {
+Java_com_example_renderplayground_RenderNative_native_1Init(JNIEnv *env, jobject thiz)
+{
     // TODO: implement native_Init()
     RenderContext::GetInstance();
 }
 
 JNIEXPORT void JNICALL
-Java_com_example_renderplayground_RenderNative_native_1UnInit(JNIEnv *env, jobject thiz) {
+Java_com_example_renderplayground_RenderNative_native_1UnInit(JNIEnv *env, jobject thiz)
+{
     // TODO: implement native_UnInit()
     RenderContext::DestroyInstance();
 }
@@ -53,9 +57,24 @@ Java_com_example_renderplayground_RenderNative_native_1UpdateTransformMatrix(JNI
                                                                              jfloat rotate_x,
                                                                              jfloat rotate_y,
                                                                              jfloat scale_x,
-                                                                             jfloat scale_y) {
+                                                                             jfloat scale_y)
+                                                                             {
     RenderContext::GetInstance()->UpdateTransformMatrix(rotate_x, rotate_y, scale_x, scale_y);
     // TODO: implement native_UpdateTransformMatrix()
+}
+
+JNIEXPORT void JNICALL
+Java_com_example_renderplayground_RenderNative_native_1SetImageData(JNIEnv *env, jobject thiz,
+                                                                    jint format, jint width,
+                                                                    jint height, jbyteArray imageData)
+                                                                    {
+                                                                        int len = env->GetArrayLength (imageData);
+                                                                        uint8_t* buf = new uint8_t[len];
+                                                                        env->GetByteArrayRegion(imageData, 0, len, reinterpret_cast<jbyte*>(buf));
+                                                                        RenderContext::GetInstance()->SetImageData(format, width, height, buf);
+                                                                        delete[] buf;
+                                                                        env->DeleteLocalRef(imageData);
+    // TODO: implement native_SetImageData()
 }
 
 #ifdef __cplusplus

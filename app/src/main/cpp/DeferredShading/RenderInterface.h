@@ -6,6 +6,7 @@
 #define RENDERPLAYGROUND_RENDERINTERFACE_H
 
 #include <GLES3/gl3.h>
+#include <ImageDef.h>
 
 #define MATH_PI 3.1415926535897932384626433832802
 
@@ -30,7 +31,11 @@ public:
     virtual void Destroy() = 0;
 
     virtual void UpdateTransformMatrix(float rotateX, float rotateY, float scaleX, float scaleY)
-    {}
+    {};
+
+    virtual void LoadImage(NativeImage *pImage)
+    {};
+
 protected:
     GLuint rProgramID;
     GLuint rVertesShader;

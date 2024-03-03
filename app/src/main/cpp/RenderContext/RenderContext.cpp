@@ -76,3 +76,33 @@ void RenderContext::OnDrawFrame()
         rCurrentSample->Draw(rScreenW, rScreenH);
     }
 }
+
+void RenderContext::SetImageData(int format, int width, int height, uint8_t *pData)
+{
+    LOGCATE("RenderContext::SetImageData format=%d, width=%d, height=%d, pData=%p", format, width, height, pData);
+    NativeImage nativeImage;
+    nativeImage.format = format;
+    nativeImage.width = width;
+    nativeImage.height = height;
+    nativeImage.ppPlane[0] = pData;
+
+    switch (format)
+    {
+        case IMAGE_FORMAT_NV12:
+        case IMAGE_FORMAT_NV21:
+            nativeImage.ppPlane[1] = nativeImage.ppPlane[0] + width * height;
+            break;
+        case IMAGE_FORMAT_I420:
+            nativeImage.ppPlane[1] = nativeImage.ppPlane[0] + width * height;
+            nativeImage.ppPlane[2] = nativeImage.ppPlane[1] + width * height / 4;
+            break;
+        default:
+            break;
+    }
+
+    if (rCurrentSample)
+    {
+        rCurrentSample->LoadImage(&nativeImage);
+    }
+
+}

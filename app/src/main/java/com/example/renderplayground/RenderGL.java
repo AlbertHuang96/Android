@@ -41,4 +41,8 @@ public class RenderGL implements GLSurfaceView.Renderer {
     {
         mNativeRender.native_UpdateTransformMatrix(rotateX, rotateY, scaleX, scaleY);
     }
+
+    public void setImageData(int format, int width, int height, byte[] bytes) {
+        mNativeRender.native_SetImageData(format, width, height, bytes);
+    }
 }

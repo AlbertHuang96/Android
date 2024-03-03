@@ -7,6 +7,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
 public class SurfaceViewGL extends GLSurfaceView {
+
     private RenderGL mRenderGL;
 
     private final float TOUCH_SCALE_FACTOR = 180.0f / 320;
