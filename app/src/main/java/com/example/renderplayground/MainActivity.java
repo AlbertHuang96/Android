@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     };
     private static final int PERMISSION_REQUEST_CODE = 1;
 
-    private SensorManager mSensorManager;
+    //private SensorManager mSensorManager;
 
     private SurfaceViewGL mGLSurfaceView;
     private RenderGL mGLRender = new RenderGL();
@@ -40,15 +40,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mGLSurfaceView = new SurfaceViewGL(this, mGLRender);
         mGLSurfaceView.setRenderMode(RENDERMODE_CONTINUOUSLY);
         setContentView(mGLSurfaceView);
-        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        //mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this,
-                mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
-                SensorManager.SENSOR_DELAY_FASTEST);
+        //mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY), SensorManager.SENSOR_DELAY_FASTEST);
         if (!hasPermissionsGranted(REQUEST_PERMISSIONS)) {
             ActivityCompat.requestPermissions(this, REQUEST_PERMISSIONS, PERMISSION_REQUEST_CODE);
         }
@@ -61,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onPause() {
         super.onPause();
-        mSensorManager.unregisterListener(this);
+        //mSensorManager.unregisterListener(this);
     }
 
     @Override
