@@ -11,11 +11,21 @@
 #include <arm_neon.h>
 #endif
 
-#define LOG_TAG "NDK_LOG"
+#define LOG_TAG "NEON log"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 //using namespace cv;
+/** @brief Returns the number of ticks per second.
+
+The function returns the number of ticks per second. That is, the following code computes the
+execution time in seconds:
+@code
+    double t = (double)getTickCount();
+    // do something ...
+    t = ((double)getTickCount() - t)/getTickFrequency();
+@endcode
+ */
 
 void mFunARGB2Gray(AndroidBitmapInfo info, void* pixels)
 {
@@ -127,7 +137,7 @@ Java_com_example_renderplayground_MainActivity_processImage(JNIEnv *env, jobject
         return -2;
     }
 
-    mOpenCVARGB2Gray(info, pixels);
+    mFunARGB2Gray(info, pixels);
 
     mOpenCVARGB2Gray(info, pixels);
 
