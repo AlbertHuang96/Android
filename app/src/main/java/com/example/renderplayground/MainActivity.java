@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         ///sdcard/Android/data/com.byteflow.app/files/Download
         String fileDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-        CommonUtils.copyAssetsDirToSDCard(MainActivity.this, "poly", fileDir + "/model");
+        //CommonUtils.copyAssetsDirToSDCard(MainActivity.this, "poly", fileDir + "/model");
         CommonUtils.copyAssetsDirToSDCard(MainActivity.this, "backpack", fileDir + "/model");
     }
 
