@@ -19,14 +19,16 @@ public:
 
     //virtual void LoadImage(NativeImage *pImage);
 
-    virtual void Init();
+    virtual void Init(int screenW, int screenH);
     virtual void Draw(int screenW, int screenH);
+
+    virtual void RecreateFramebuffers(int screenW, int screenH);
 
     virtual void Destroy();
 
     virtual void UpdateTransformMatrix(float rotateX, float rotateY, float scaleX, float scaleY);
 
-    void UpdateMVPMatrix(glm::mat4 &mvpMatrix, int angleX, int angleY, float ratio);
+    void UpdateMVPMatrix(glm::mat4 &mvpMatrix, int angleX, int angleY, int screenW, int screenH);
 
     void RenderQuad();
 
@@ -53,8 +55,8 @@ private:
     float m_ScaleX;
     float m_ScaleY;
 
-    int SCR_WIDTH = 1080;
-    int SCR_HEIGHT = 2029;
+    //int SCR_WIDTH = 1080;
+    //int SCR_HEIGHT = 2029;
 };
 
 #endif //RENDERPLAYGROUND_DEFERREDSHADINGGBUFFER_H

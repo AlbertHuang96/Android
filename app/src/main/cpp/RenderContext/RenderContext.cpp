@@ -63,6 +63,7 @@ void RenderContext::OnSurfaceChanged(int width, int height)
     glViewport(0, 0, width, height);
     rScreenW = width;
     rScreenH = height;
+    rCurrentSample->RecreateFramebuffers(rScreenW, rScreenH);
 }
 
 void RenderContext::OnDrawFrame()
@@ -72,7 +73,7 @@ void RenderContext::OnDrawFrame()
 
     if (rCurrentSample)
     {
-        rCurrentSample->Init();
+        rCurrentSample->Init(rScreenW, rScreenH);
         rCurrentSample->Draw(rScreenW, rScreenH);
     }
 }

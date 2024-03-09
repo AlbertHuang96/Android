@@ -24,10 +24,13 @@ public:
     {
 
     }
-    virtual void Init() = 0;
+    virtual void Init(int screenW, int screenH) = 0;
     virtual void Draw(int screenW, int screenH) = 0;
 
     virtual void Destroy() = 0;
+
+    virtual void RecreateFramebuffers(int screenW, int screenH)
+    {}
 
     virtual void UpdateTransformMatrix(float rotateX, float rotateY, float scaleX, float scaleY)
     {}

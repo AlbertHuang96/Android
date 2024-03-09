@@ -32,12 +32,11 @@ GBufferDeferredShading::~GBufferDeferredShading()
 
 }
 
-void GBufferDeferredShading::Init()
+void GBufferDeferredShading::Init(int screenW, int screenH)
 {
     if(mBackpack != nullptr && mGbufferPass != nullptr)
         return;
 
-    //TODO 先把 model 文件夹拷贝到 /sdcard/Android/data/com.byteflow.app/files/Download 路径下，然后可以选择你要加载的模型
     std::string path(DEFAULT_OGL_ASSETS_DIR);
     //mBackpack = new Model(path + "/model/poly/Apricot_02_hi_poly.obj");
     mBackpack = new Model(path + "/model/backpack/backpack.obj");
@@ -49,21 +48,21 @@ void GBufferDeferredShading::Init()
 
     glGenTextures(1, &gPosition);
     glBindTexture(GL_TEXTURE_2D, gPosition);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
     // normal color buffer
     glGenTextures(1, &gNormal);
     glBindTexture(GL_TEXTURE_2D, gNormal);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
     // color + specular color buffer
     glGenTextures(1, &gDiffuseSpec);
     glBindTexture(GL_TEXTURE_2D, gDiffuseSpec);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenW, screenH, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gDiffuseSpec, 0);
@@ -80,7 +79,7 @@ void GBufferDeferredShading::Init()
 
     glGenRenderbuffers(1, &gDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, gDepth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenW, screenH);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gDepth);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER))
@@ -212,6 +211,54 @@ void GBufferDeferredShading::Init()
     //mLightingPass->setInt("gDiffuseSpec", 2);
 }
 
+void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+
+    glGenTextures(1, &gPosition);
+    glBindTexture(GL_TEXTURE_2D, gPosition);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+    // normal color buffer
+    glGenTextures(1, &gNormal);
+    glBindTexture(GL_TEXTURE_2D, gNormal);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+    // color + specular color buffer
+    glGenTextures(1, &gDiffuseSpec);
+    glBindTexture(GL_TEXTURE_2D, gDiffuseSpec);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenW, screenH, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gDiffuseSpec, 0);
+    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
+    //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+    glDrawBuffers(3, attachments);
+
+    /*glGenTextures(1, &gDepth);
+    glBindTexture(GL_TEXTURE_2D, gDepth);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT, NULL);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);*/
+
+    glGenRenderbuffers(1, &gDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, gDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenW, screenH);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gDepth);
+
+    if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER))
+    {
+        LOGCATE("GBufferDeferredShading::Init() GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER");
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
 void GBufferDeferredShading::Draw(int screenW, int screenH)
 {
     if(mBackpack == nullptr || mGbufferPass == nullptr) return;
@@ -228,7 +275,7 @@ void GBufferDeferredShading::Draw(int screenW, int screenH)
     //glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     //glClear(GL_COLOR_BUFFER_BIT);
 
-    UpdateMVPMatrix(m_MVPMatrix, m_AngleX, m_AngleY, (float)screenW / screenH);
+    UpdateMVPMatrix(m_MVPMatrix, m_AngleX, m_AngleY, screenW, screenH);
 
     mGbufferPass->use();
     mGbufferPass->setMat4("u_MVPMatrix", m_MVPMatrix);
@@ -298,9 +345,9 @@ void GBufferDeferredShading::Destroy()
     }
 }
 
-void GBufferDeferredShading::UpdateMVPMatrix(glm::mat4 &mvpMatrix, int angleX, int angleY, float ratio)
+void GBufferDeferredShading::UpdateMVPMatrix(glm::mat4 &mvpMatrix, int angleX, int angleY, int screenW, int screenH)
 {
-    LOGCATE("GBufferDeferredShading::UpdateMVPMatrix angleX = %d, angleY = %d, ratio = %f", angleX, angleY, ratio);
+    LOGCATE("GBufferDeferredShading::UpdateMVPMatrix angleX = %d, angleY = %d, screenW = %d, screenH = %d", angleX, angleY, screenW, screenH);
     angleX = angleX % 360;
     angleY = angleY % 360;
 
@@ -311,7 +358,19 @@ void GBufferDeferredShading::UpdateMVPMatrix(glm::mat4 &mvpMatrix, int angleX, i
 
     // Projection matrix
     //glm::mat4 Projection = glm::ortho(-ratio, ratio, -1.0f, 1.0f, 0.1f, 100.0f);
-    glm::mat4 Projection = glm::frustum(-ratio, ratio, -1.0f, 1.0f, 1.0f, mBackpack->GetMaxViewDistance() * 4);
+    float ratio = 0.0;
+    glm::mat4 Projection;
+    if (screenW > screenH)
+    {
+        ratio = (float)screenW / screenH;
+        Projection = glm::ortho(-ratio, ratio, -1.0f, 1.0f, -2.0f, 2.0f);
+    }
+    else
+    {
+        ratio = (float)screenH / screenW;
+        Projection = glm::ortho(-1.0f, 1.0f, -ratio, ratio, -2.0f, 2.0f);
+    }
+    //lm::mat4 Projection = glm::frustum(-ratio, ratio, -1.0f, 1.0f, 1.0f, mBackpack->GetMaxViewDistance() * 4);
     //glm::mat4 Projection = glm::perspective(45.0f,ratio, 0.1f,100.f);
 
     // View matrix
@@ -323,12 +382,14 @@ void GBufferDeferredShading::UpdateMVPMatrix(glm::mat4 &mvpMatrix, int angleX, i
 
     // Model matrix
     glm::mat4 Model = glm::mat4(1.0f);
-    Model = glm::scale(Model, glm::vec3(m_ScaleX, m_ScaleY, 1.0f));
+    Model = glm::scale(Model, glm::vec3(0.6 * m_ScaleX, 0.6 * m_ScaleY, 1.0f));
     Model = glm::rotate(Model, radiansX, glm::vec3(1.0f, 0.0f, 0.0f));
     Model = glm::rotate(Model, radiansY, glm::vec3(0.0f, 1.0f, 0.0f));
     Model = glm::translate(Model, -mBackpack->GetAdjustModelPosVec());
     m_ModelMatrix = Model;
-    mvpMatrix = Projection * View * Model;
+    //mvpMatrix = Projection * View * Model;
+    mvpMatrix = Projection * Model;
+
 
 }
 
