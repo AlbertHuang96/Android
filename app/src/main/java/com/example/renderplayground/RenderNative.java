@@ -2,10 +2,6 @@ package com.example.renderplayground;
 
 public class RenderNative {
 
-    static {
-        System.loadLibrary("RangerEngine");
-    }
-
     public native void native_OnSurfaceCreated();
 
     public native void native_OnSurfaceChanged(int width, int height);

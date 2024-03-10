@@ -28,19 +28,64 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     //private SensorManager mSensorManager;
 
-    private SurfaceViewGL mGLSurfaceView;
-    private RenderGL mGLRender = new RenderGL();
+    //private SurfaceViewGL mGLSurfaceView;
+    //private RenderGL mGLRender = new RenderGL();
+
+    public native int bindThreadToCore(int core);
+
+    public native int bindPidToCore(int pid, int core);
+
+    public native int bindThreadToCore2(int core);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);
         //native_Helloworld();
-        mGLRender.init();
-        mGLSurfaceView = new SurfaceViewGL(this, mGLRender);
-        mGLSurfaceView.setRenderMode(RENDERMODE_CONTINUOUSLY);
-        setContentView(mGLSurfaceView);
+
+        task1();
+        task2();
+
+        //mGLRender.init();
+        //mGLSurfaceView = new SurfaceViewGL(this, mGLRender);
+        //mGLSurfaceView.setRenderMode(RENDERMODE_CONTINUOUSLY);
+        //setContentView(mGLSurfaceView);
         //mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+    }
+
+    private void task1() {
+        new Thread(() -> {
+            try {
+                bindThreadToCore(0);
+                long time = System.currentTimeMillis();
+                long sum = 0L;
+                for (int i = 0; i < 10000000L; i++) {
+                    sum += i;
+                }
+                time = System.currentTimeMillis() - time;
+                Log.e("task1 ", String.valueOf(time));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    private void task2() {
+        new Thread(() -> {
+            try {
+                bindThreadToCore(1);
+                long time = System.currentTimeMillis();
+                long sum = 0L;
+                for (int i = 0; i < 10000000L; i++) {
+                    sum += i;
+                }
+                time = System.currentTimeMillis() - time;
+                Log.e("task2 ", String.valueOf(time));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     @Override
@@ -90,6 +135,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     /*static {
         System.loadLibrary("RangerEngine");
     }*/
+    static {
+        System.loadLibrary("RangerEngine");
+    }
 
     //public native String native_Helloworld();
 }

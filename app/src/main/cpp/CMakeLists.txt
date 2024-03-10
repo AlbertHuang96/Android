@@ -21,6 +21,7 @@ include_directories(
 # Gradle automatically packages shared libraries with your APK.
 file(GLOB src-files
         ${CMAKE_SOURCE_DIR}/*.cpp
+        ${CMAKE_SOURCE_DIR}/setAffinity/setAffinity.cpp
         ${CMAKE_SOURCE_DIR}/DeferredShading/DeferredShadingGBuffer.cpp
         ${CMAKE_SOURCE_DIR}/DeferredShading/Model3DSample.cpp
         ${CMAKE_SOURCE_DIR}/DeferredShading/TriangleSample.cpp
