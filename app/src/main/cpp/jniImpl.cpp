@@ -7,7 +7,7 @@
 #include <pthread.h>
 
 #include <sched.h>
-#include "setAffinity/setAffinity.cpp"
+#include "setAffinity/setAffinity.h"
 //----------------------------------
 
 #include "RenderContext/RenderContext.h"
@@ -120,8 +120,8 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_com_example_renderplayground_MainActivity_bindThreadToCore2(JNIEnv *env, jobject thiz,
                                                                  jint core) {
-    int coreNum = 0; //getCoreNums();
-    int cpuIndex = 0; //getMaxFreqIndex(coreNum);
+    int coreNum = getCoreNums();
+    int cpuIndex = getMaxFreqIndex(coreNum);
 
     cpu_set_t mask;
     CPU_ZERO(&mask);
