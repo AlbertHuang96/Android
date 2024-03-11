@@ -57,7 +57,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void task1() {
         new Thread(() -> {
             try {
-                bindThreadToCore(0);
+                //bindThreadToCore(0);
+                bindThreadToCore2(0);
                 long time = System.currentTimeMillis();
                 long sum = 0L;
                 for (int i = 0; i < 10000000L; i++) {
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 time = System.currentTimeMillis() - time;
                 Log.e("task1 ", String.valueOf(time));
+                //com.example.renderplayground E/task1: 57
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -74,7 +76,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void task2() {
         new Thread(() -> {
             try {
-                bindThreadToCore(1);
+                //bindThreadToCore(1);
+                bindThreadToCore2(1);
                 long time = System.currentTimeMillis();
                 long sum = 0L;
                 for (int i = 0; i < 10000000L; i++) {
@@ -82,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 time = System.currentTimeMillis() - time;
                 Log.e("task2 ", String.valueOf(time));
+                //com.example.renderplayground E/task2: 62
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-/*int getCoreNums()
+int getCoreNums()
 {
     std::ifstream cpuinfo("/proc/cpuinfo");
     int cores = 0;
@@ -21,15 +21,15 @@
     }
     cpuinfo.close();
     return cores;
-}*/
+}
 
-/*int getMaxFreqIndex(int coreNum)
+int getMaxFreqIndex(int coreNum)
 {
     int maxFreq = -1;
     int index = -1;
     try
     {
-        *//*for (int i = 0; i < coreNum; i++)
+        for (int i = 0; i < coreNum; i++)
         {
             std::string filename = "/sys/devices/system/cpu/cpu" + std::to_string(i) + "/cpufreq/cpuinfo_max_freq";
             std::ifstream cpufile(filename);
@@ -47,11 +47,11 @@
                 }
                 cpufile.close();
             }
-        }*//*
+        }
     }
     catch (const std::exception& e)
     {
         //e.what()
     }
     return index;
-}*/
+}
