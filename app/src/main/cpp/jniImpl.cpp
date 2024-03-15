@@ -9,6 +9,11 @@
 #include <sched.h>
 #include "setAffinity/setAffinity.h"
 //----------------------------------
+//-----cpu cache info-------------
+
+#include <sstream>
+#include <cpuinfo/cpuinfo.h>
+//----------------------------------
 
 #include "RenderContext/RenderContext.h"
 
@@ -132,3 +137,59 @@ Java_com_example_renderplayground_MainActivity_bindThreadToCore2(JNIEnv *env, jo
     }
     return 0;
 }
+
+
+void getCacheInfo(const char* name, const struct cpuinfo_cache* cache, std::ostringstream& oss)
+{
+    oss << "CPU Cache: " << name << std::endl;
+    oss << " > size            : " << cache->size << std::endl;
+    oss << " > associativity   : " << cache->associativity   << std::endl;
+    oss << " > sets            : " << cache->sets            << std::endl;
+    oss << " > partitions      : " << cache->partitions      << std::endl;
+    oss << " > line_size       : " << cache->line_size       << std::endl;
+    oss << " > flags           : " << cache->flags           << std::endl;
+    oss << " > processor_start : " << cache->processor_start << std::endl;
+    oss << " > processor_count : " << cache->processor_count << std::endl;
+    oss << std::endl;
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_renderplayground_MainActivity_getCpuInfo(JNIEnv *env, jobject thiz) {
+
+    cpuinfo_initialize();
+    const struct cpuinfo_processor* proc = cpuinfo_get_current_processor();
+
+    std::ostringstream oss;
+
+    if (proc->cache.l1d)
+    {
+        getCacheInfo("L1 Data", proc->cache.l1d, oss);
+    }
+
+    if (proc->cache.l1i)
+    {
+        getCacheInfo("L1 Instruction", proc->cache.l1i, oss);
+    }
+
+    if (proc->cache.l2)
+    {
+        getCacheInfo("L2", proc->cache.l2, oss);
+    }
+
+    if (proc->cache.l3)
+    {
+        getCacheInfo("L3", proc->cache.l3, oss);
+    }
+
+    if (proc->cache.l4)
+    {
+        getCacheInfo("L4", proc->cache.l4, oss);
+    }
+
+    std::string ossString = oss.str();
+    const char* ossChar = ossString.c_str();
+    jstring jstrData = (env)->NewStringUTF( ossChar);
+    return jstrData;
+}
+

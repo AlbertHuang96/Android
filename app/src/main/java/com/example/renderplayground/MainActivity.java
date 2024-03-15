@@ -37,6 +37,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public native int bindThreadToCore2(int core);
 
+    public native String getCpuInfo();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +46,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
         //native_Helloworld();
 
-        task1();
-        task2();
+        String cpuinfoCache = getCpuInfo();
+        Log.e("Cpu cache : ", cpuinfoCache);
+        //CPU Cache: L1 Data
+        //     > size            : 32768
+        //     > associativity   : 4
+        //     > sets            : 128
+        //     > partitions      : 1
+        //     > line_size       : 64
+        //     > flags           : 0
+        //     > processor_start : 2
+        //     > processor_count : 1
+        //
+
+        //
+        //task1();
+        //task2();
 
         //mGLRender.init();
         //mGLSurfaceView = new SurfaceViewGL(this, mGLRender);
@@ -61,11 +77,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 bindThreadToCore2(0);
                 long time = System.currentTimeMillis();
                 long sum = 0L;
-                for (int i = 0; i < 10000000L; i++) {
+                for (int i = 0; i < 1000000000L; i++) {
                     sum += i;
                 }
                 time = System.currentTimeMillis() - time;
                 Log.e("task1 ", String.valueOf(time));
+                ///com.example.renderplayground E/task1: 4716
                 //com.example.renderplayground E/task1: 57
             } catch (Exception e) {
                 e.printStackTrace();
@@ -80,11 +97,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 bindThreadToCore2(1);
                 long time = System.currentTimeMillis();
                 long sum = 0L;
-                for (int i = 0; i < 10000000L; i++) {
+                for (int i = 0; i < 1000000000L; i++) {
                     sum += i;
                 }
                 time = System.currentTimeMillis() - time;
                 Log.e("task2 ", String.valueOf(time));
+                ///com.example.renderplayground E/task2: 4696
                 //com.example.renderplayground E/task2: 62
             } catch (Exception e) {
                 e.printStackTrace();
