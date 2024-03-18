@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public native String getCpuInfo();
 
+    public native void testFalseSharing();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +48,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
         //native_Helloworld();
 
-        String cpuinfoCache = getCpuInfo();
-        Log.e("Cpu cache : ", cpuinfoCache);
+        testFalseSharing();
+
+        //String cpuinfoCache = getCpuInfo();
+        //Log.e("Cpu cache : ", cpuinfoCache);
         //CPU Cache: L1 Data
         //     > size            : 32768
         //     > associativity   : 4

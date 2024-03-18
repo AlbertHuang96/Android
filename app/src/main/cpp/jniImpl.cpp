@@ -4,7 +4,7 @@
 
 // set affinity ---------------------
 #include <unistd.h>
-#include <pthread.h>
+//#include <pthread.h>
 
 #include <sched.h>
 #include "setAffinity/setAffinity.h"
@@ -13,6 +13,7 @@
 
 #include <sstream>
 #include <cpuinfo/cpuinfo.h>
+
 //----------------------------------
 
 #include "RenderContext/RenderContext.h"
@@ -193,3 +194,20 @@ Java_com_example_renderplayground_MainActivity_getCpuInfo(JNIEnv *env, jobject t
     return jstrData;
 }
 
+/*constexpr bool FALSE_SHARING = true;
+constexpr size_t CACHE_LINE_SIZE = 64, SECOND_ALIGN_SIZE = FALSE_SHARING ? sizeof(int) : CACHE_LINE_SIZE;
+
+constexpr int A_THREAD_CORE = 0, B_THREAD_CORE = 1;
+constexpr size_t CPU_NUM = 8;*/
+
+/*struct AlignStruct
+{
+    std::atomic<int> a alignas(CACHE_LINE_SIZE);
+    std::atomic<int> b alignas(SECOND_ALIGN_SIZE);
+};*/
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_renderplayground_MainActivity_testFalseSharing(JNIEnv *env, jobject thiz) {
+    testFalseSharing();
+}

@@ -8,4 +8,8 @@
 int getMaxFreqIndex(int coreNum);
 int getCoreNums();
 
+int setAffinity(int core);
+
+void testFalseSharing();
+
 #endif //RENDERPLAYGROUND_SETAFFINITY_H
