@@ -8,7 +8,7 @@
 
 #include <detail/type_mat.hpp>
 #include <detail/type_mat4x4.hpp>
-#include <shader.cpp>
+#include <shader.h>
 #include <model.cpp>
 #include "RenderInterface.h"
 

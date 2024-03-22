@@ -4,6 +4,7 @@
 
 #include "RenderContext/RenderContext.h"
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -16,10 +17,16 @@ Java_com_example_renderplayground_MainActivity_native_1Helloworld(JNIEnv *env, j
 }*/
 
 
+
 JNIEXPORT void JNICALL
-Java_com_example_renderplayground_RenderNative_native_1OnSurfaceCreated(JNIEnv *env, jobject thiz) {
-    // TODO: implement native_OnSurfaceCreated()
-    RenderContext::GetInstance()->OnSurfaceCreated();
+Java_com_example_renderplayground_RenderNative_native_1OnSurfaceCreated(JNIEnv *env, jobject thiz,
+                                                                        jobject assetManager) {
+    //jobject is an invalid JNI transition frame reference or invalid reference
+    // SIGABORT coredump
+    // lifespan of assetManager!
+    jobject globalRef = env->NewGlobalRef(assetManager);
+    RenderContext::GetInstance()->OnSurfaceCreated(env, globalRef);
+    //env->DeleteGlobalRef(globalRef);
 }
 
 JNIEXPORT void JNICALL
@@ -44,6 +51,7 @@ Java_com_example_renderplayground_RenderNative_native_1Init(JNIEnv *env, jobject
 JNIEXPORT void JNICALL
 Java_com_example_renderplayground_RenderNative_native_1UnInit(JNIEnv *env, jobject thiz) {
     // TODO: implement native_UnInit()
+
     RenderContext::DestroyInstance();
 }
 
@@ -58,6 +66,13 @@ Java_com_example_renderplayground_RenderNative_native_1UpdateTransformMatrix(JNI
     // TODO: implement native_UpdateTransformMatrix()
 }
 
+/*JNIEXPORT void JNICALL
+Java_com_example_renderplayground_MainActivity_setNativeAssetManager(JNIEnv *env, jobject thiz,
+                                                                     jobject asset_manager) {
+    mAssetManager = AAssetManager_fromJava(env, asset_manager);
+}*/
+
 #ifdef __cplusplus
 }
 #endif
+

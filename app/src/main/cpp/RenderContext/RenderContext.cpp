@@ -5,12 +5,20 @@
 #include "Model3DSample.h"
 #include "DeferredShadingGBuffer.h"
 
+#include <UtilGL.h>
+
+#include <vector>
+#include <jni.h>
+
 RenderContext* RenderContext::mContext = nullptr;
 
 RenderContext::RenderContext()
 {
     //rCurrentSample = new TriangleSample();
     rCurrentSample = new GBufferDeferredShading();
+
+    //std::vector<int> tmpInt;
+    //tmpInt.push_back(1);
 }
 
 
@@ -51,9 +59,9 @@ void RenderContext::UpdateTransformMatrix(float rotateX, float rotateY, float sc
     }
 }
 
-void RenderContext::OnSurfaceCreated()
+void RenderContext::OnSurfaceCreated(JNIEnv* env, jobject assetManager)
 {
-
+    UtilGL::setEnvAndAssetManager(env, assetManager);
     glClearColor(1.0f,1.0f,1.0f, 1.0f);
 }
 

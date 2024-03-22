@@ -6,7 +6,7 @@
 #include "../inc/assimp/Importer.hpp"
 #include "../inc/assimp/scene.h"
 #include "../inc/assimp/postprocess.h"
-#include <shader.cpp>
+#include <shader.h>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -52,7 +52,7 @@ public:
     {
         glm::vec3 vec3 = (abs(minXyz) + abs(maxXyz)) / 2.0f;
         float maxDis = fmax(vec3.x, fmax(vec3.y, vec3.z));
-        LOGCATE("Model::GetMaxViewDistance maxDis=%f", maxDis);
+        //LOGCATE("Model::GetMaxViewDistance maxDis=%f", maxDis);
         return maxDis;
     }
 
@@ -257,7 +257,7 @@ private:
         unsigned char *data = nullptr;
 
         // load the texture using OpenCV
-        LOGCATE("TextureFromFile Loading texture %s", filename.c_str());
+        //LOGCATE("TextureFromFile Loading texture %s", filename.c_str());
         cv::Mat textureImage = cv::imread(filename);
         if (!textureImage.empty())
         {

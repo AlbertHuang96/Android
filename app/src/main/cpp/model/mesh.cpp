@@ -4,7 +4,7 @@
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 
-#include <shader.cpp>
+#include <shader.h>
 
 #include <string>
 #include <fstream>

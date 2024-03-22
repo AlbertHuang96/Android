@@ -5,9 +5,11 @@
 #ifndef RENDERPLAYGROUND_DEFERREDSHADINGGBUFFER_H
 #define RENDERPLAYGROUND_DEFERREDSHADINGGBUFFER_H
 
+#include <vector>
+
 #include <detail/type_mat.hpp>
 #include <detail/type_mat4x4.hpp>
-#include <shader.cpp>
+#include <shader.h>
 #include <model.cpp>
 #include "RenderInterface.h"
 
@@ -48,7 +50,13 @@ private:
     Shader* mLightingPass;
     Shader* mLightBoxPass;
 
+    const char* GBufferVSShaderPath = "shaders/GBufferVS.glsl";
+    const char* GBufferFSShaderPath = "shaders/GBufferFS.glsl";
+    const char* LightingVSShaderPath = "shaders/LightingVS.glsl";
+    const char* LightingFSShaderPath = "shaders/LightingFS.glsl";
+
     Model* mBackpack;
+    std::vector<glm::vec3> objectPositions;
 
     int m_AngleX;
     int m_AngleY;

@@ -8,6 +8,7 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -29,13 +30,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //private SensorManager mSensorManager;
 
     private SurfaceViewGL mGLSurfaceView;
-    private RenderGL mGLRender = new RenderGL();
+    private RenderGL mGLRender = null;
+
+    //public native void setNativeAssetManager(AssetManager assetManager);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
         //native_Helloworld();
+
+        //setNativeAssetManager(getAssets());
+
+        mGLRender = new RenderGL(this);
         mGLRender.init();
         mGLSurfaceView = new SurfaceViewGL(this, mGLRender);
         mGLSurfaceView.setRenderMode(RENDERMODE_CONTINUOUSLY);

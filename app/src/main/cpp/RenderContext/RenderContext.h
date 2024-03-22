@@ -6,6 +6,7 @@
 #define RENDERPLAYGROUND_RENDERCONTEXT_H
 
 #include <GLES3/gl3.h>
+#include <jni.h>
 #include "RenderInterface.h"
 
 class RenderContext
@@ -13,7 +14,7 @@ class RenderContext
     RenderContext();
     ~RenderContext();
 public:
-    void OnSurfaceCreated();
+    void OnSurfaceCreated(JNIEnv* env, jobject assetManager);
     void OnSurfaceChanged(int width, int height);
     void OnDrawFrame();
 

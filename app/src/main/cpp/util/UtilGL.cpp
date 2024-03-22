@@ -7,6 +7,59 @@
 #include <stdlib.h>
 #include <cstring>
 
+#include <android/asset_manager_jni.h>
+#include <android/asset_manager.h>
+
+static JNIEnv* env = nullptr;
+static jobject assetManager = nullptr;
+
+void UtilGL::setEnvAndAssetManager(JNIEnv* envParam, jobject assetManagerParam)
+{
+    env = envParam;
+    assetManager = assetManagerParam;
+}
+
+static AAsset* loadAsset(const char* filePath)
+{
+    AAssetManager* mgr = AAssetManager_fromJava(env, assetManager);
+
+    if (mgr == nullptr)
+    {
+        return nullptr;
+    }
+    // not a thread safe operation
+    return AAssetManager_open ( mgr, filePath, AASSET_MODE_STREAMING );
+}
+
+char* UtilGL::openTextFile(const char* path)
+{
+    char* buffer;
+    AAsset* asset = loadAsset(path);
+    if (!asset)
+    {
+        LOGCATE ( "UtilGL::openTextFile Can't open file %s.", path );
+        return nullptr;
+    }
+
+    size_t size = static_cast<size_t> ( AAsset_getLength ( asset ) );
+    LOGCATE ( "UtilGL::openTextFile size %ld.", size );
+    buffer = new char[size + 1];
+    int num = AAsset_read( asset, buffer, size );
+    AAsset_close ( asset );
+
+    LOGCATE ( "UtilGL::openTextFile num %d.", num );
+
+    if ( size != num )
+    {
+        LOGCATE ( "UtilGL::openTextFile Can't read file %s.", path );
+        delete[] buffer;
+        return nullptr;
+    }
+
+    buffer[size] = '\0';
+    return buffer;
+}
+
 GLuint UtilGL::LoadShader(GLenum shaderType, const char *pSource)
 {
     GLuint shader = 0;

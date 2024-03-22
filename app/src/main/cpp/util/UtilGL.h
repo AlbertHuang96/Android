@@ -8,11 +8,16 @@
 #include <GLES3/gl3.h>
 #include <string>
 #include <glm.hpp>
+#include <jni.h>
 
 //namespace UtilGL
 class UtilGL
 {
 public:
+    static char* openTextFile(const char* path);
+
+    static void setEnvAndAssetManager(JNIEnv* env, jobject assetManager);
+
     static GLuint LoadShader(GLenum shaderType, const char *pSource);
 
     static GLuint CreateProgram(const char *pVertexShaderSource, const char *pFragShaderSource,

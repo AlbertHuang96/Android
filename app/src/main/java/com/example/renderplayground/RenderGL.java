@@ -1,5 +1,7 @@
 package com.example.renderplayground;
 
+import android.app.Activity;
+import android.content.res.AssetManager;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
@@ -8,14 +10,19 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class RenderGL implements GLSurfaceView.Renderer {
     private RenderNative mNativeRender;
+    //private AssetManager assetManager;
+    private Activity mActivity;
 
-    RenderGL() {
+    RenderGL(Activity activity) {
+        mActivity = activity;
+        //assetManager = activity.getAssets();
         mNativeRender = new RenderNative();
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        mNativeRender.native_OnSurfaceCreated();
+        AssetManager assetManager = mActivity.getAssets();
+        mNativeRender.native_OnSurfaceCreated(assetManager);
         //Log.e(TAG, "onSurfaceCreated() called with: GL_VERSION = [" + gl.glGetString(GL10.GL_VERSION) + "]");
     }
 
