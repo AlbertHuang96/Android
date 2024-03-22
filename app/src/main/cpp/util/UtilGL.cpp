@@ -27,7 +27,10 @@ static AAsset* loadAsset(const char* filePath)
     {
         return nullptr;
     }
-    // not a thread safe operation
+    // assets' operation are not thread-safe
+    // mutex isnt copyable
+    // error: call to implicitly-deleted copy constructor
+    //std::mutex mLock;
     return AAssetManager_open ( mgr, filePath, AASSET_MODE_STREAMING );
 }
 

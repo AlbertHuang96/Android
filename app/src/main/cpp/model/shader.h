@@ -19,10 +19,6 @@ public:
 
     unsigned int ID;
 
-    //mutex isnt copyable
-    // error: call to implicitly-deleted copy constructor
-    //std::mutex mLock;
-
     Shader(const char* vsFilePath, const char* fsFilePath);
 
     Shader(const Shader& shaderObject)
