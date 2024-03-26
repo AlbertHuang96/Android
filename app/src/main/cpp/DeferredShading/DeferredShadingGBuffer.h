@@ -33,10 +33,18 @@ public:
     void UpdateMVPMatrix(glm::mat4 &mvpMatrix, int angleX, int angleY, int screenW, int screenH);
 
     void RenderQuad();
+    void RenderQuadNoTexcoord();
 
 private:
     glm::mat4 m_MVPMatrix;
     glm::mat4 m_ModelMatrix;
+
+    float zNear = 0.0;
+    float zFar = 0.0;
+
+    unsigned int depthMapFBO;
+    unsigned int depthMap;
+    unsigned int dataBuffer;
 
     unsigned int gBuffer;
     unsigned int gDepth;
@@ -46,6 +54,9 @@ private:
     unsigned int quadVAO = 0;
     unsigned int quadVBO = 0;
 
+    Shader* mDepthPass;
+    Shader* mDrawDepthPass;
+
     Shader* mGbufferPass;
     Shader* mLightingPass;
     Shader* mLightBoxPass;
@@ -54,6 +65,12 @@ private:
     const char* GBufferFSShaderPath = "shaders/GBufferFS.glsl";
     const char* LightingVSShaderPath = "shaders/LightingVS.glsl";
     const char* LightingFSShaderPath = "shaders/LightingFS.glsl";
+
+    const char* QuadVSShaderPath = "shaders/QuadVS.glsl";
+    const char* DepthFSShaderPath = "shaders/RenderDepthFS.glsl";
+
+    const char* DepthVSShaderPath = "shaders/DepthVS.glsl";
+    const char* SimpleDepthFSShaderPath = "shaders/DepthFS.glsl";
 
     Model* mBackpack;
     std::vector<glm::vec3> objectPositions;
