@@ -52,7 +52,7 @@ void RenderContext::DestroyInstance()
 
 void RenderContext::UpdateTransformMatrix(float rotateX, float rotateY, float scaleX, float scaleY)
 {
-    LOGCATE("RenderContext::UpdateTransformMatrix [rotateX, rotateY, scaleX, scaleY] = [%f, %f, %f, %f]", rotateX, rotateY, scaleX, scaleY);
+    //LOGCATE("RenderContext::UpdateTransformMatrix [rotateX, rotateY, scaleX, scaleY] = [%f, %f, %f, %f]", rotateX, rotateY, scaleX, scaleY);
     if (rCurrentSample)
     {
         rCurrentSample->UpdateTransformMatrix(rotateX, rotateY, scaleX, scaleY);
@@ -71,7 +71,7 @@ void RenderContext::OnSurfaceChanged(int width, int height)
     glViewport(0, 0, width, height);
     rScreenW = width;
     rScreenH = height;
-    rCurrentSample->RecreateFramebuffers(rScreenW, rScreenH);
+    //rCurrentSample->RecreateFramebuffers(rScreenW, rScreenH);
 }
 
 void RenderContext::OnDrawFrame()

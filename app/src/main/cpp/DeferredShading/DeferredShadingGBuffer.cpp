@@ -22,6 +22,18 @@ const GLenum attachments2[1] = {
         GL_COLOR_ATTACHMENT0
 };
 
+std::vector<std::string> stringSplit(const std::string& str, char delim) {
+    std::stringstream ss(str);
+    std::string item;
+    std::vector<std::string> elems;
+    while (std::getline(ss, item, delim)) {
+        if (!item.empty()) {
+            elems.push_back(item);
+        }
+    }
+    return elems;
+}
+
 GBufferDeferredShading::GBufferDeferredShading()
 {
     m_AngleX = 0;
@@ -47,8 +59,8 @@ GBufferDeferredShading::~GBufferDeferredShading()
 
 void GBufferDeferredShading::Init(int screenW, int screenH)
 {
-    if(mBackpack != nullptr)
-        return;
+    //if(mBackpack != nullptr)
+        //return;
 
     std::string path(DEFAULT_OGL_ASSETS_DIR);
     //mBackpack = new Model(path + "/model/poly/Apricot_02_hi_poly.obj");
@@ -62,6 +74,7 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     objectPositions.push_back(glm::vec3( 2.0,  2, -5.0));
     objectPositions.push_back(glm::vec3( -1.0,  3, -5.0));
 
+    //https://docs.unity.cn/cn/2019.4/Manual/SL-DepthTextures.html
     // reverse-z
     glEnable(GL_DEPTH_TEST);
     glDepthRangef(1.0f, 0.0f);
@@ -69,7 +82,7 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
 
     zNear = 2.0f, zFar = 100.0f;
 
-    /*glGenFramebuffers(1, &gBuffer);
+    glGenFramebuffers(1, &gBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 
     glActiveTexture(GL_TEXTURE0);
@@ -99,7 +112,7 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
     glDrawBuffers(3, attachments);
 
-    glActiveTexture(GL_TEXTURE3);
+    /*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gDepth);
     glBindTexture(GL_TEXTURE_2D, gDepth);
     //GL_DEPTH_COMPONENT32F
@@ -109,12 +122,12 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);*/
 
-    *//*glGenRenderbuffers(1, &gDepth);
+    glGenRenderbuffers(1, &gDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, gDepth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenW, screenH);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gDepth);*//*
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gDepth);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER))
     {
@@ -132,49 +145,45 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     }
 
 
-    mLightingPass = new Shader(LightingVSShaderPath, LightingFSShaderPath);*/
+    mLightingPass = new Shader(LightingVSShaderPath, LightingFSShaderPath);
 
-    mDrawDepthPass = new Shader(QuadVSShaderPath, DepthFSShaderPath);
+    //mDrawDepthPass = new Shader(QuadVSShaderPath, DepthFSShaderPath);
 
-    mDepthPass = new Shader(DepthVSShaderPath, SimpleDepthFSShaderPath);
+    //mDepthPass = new Shader(DepthVSShaderPath, SimpleDepthFSShaderPath);
 
-    // visualize depth
-    glGenFramebuffers(1, &depthMapFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 
-    glGenTextures(1, &dataBuffer);
-    glBindTexture(GL_TEXTURE_2D, dataBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenW, screenH, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dataBuffer, 0);
-    // create depth texture
-    glGenTextures(1, &depthMap);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, screenW, screenH, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // attach depth texture as FBO's depth buffer
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-    // attach depth texture as FBO's depth buffer
-    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    const char* version = (const char*)glGetString(GL_VERSION);
+    const char* exts = (const char*)glGetString(GL_EXTENSIONS);
 
-    glDrawBuffers(1, attachments2);
+    std::vector<std::string> extStrings;
+    char* token = (char*)glGetString(GL_EXTENSIONS);
+    extStrings.emplace_back(token);
+    char s[2] = " ";
+    std::vector<std::string> res = stringSplit(extStrings[0], s[0]);
 
-    if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER))
+    //https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/AdoptingOpenGLES3/AdoptingOpenGLES3.html#//apple_ref/doc/uid/TP40008793-CH504-SW3
+    if (strstr(exts, "GL_EXT_shader_framebuffer_fetch") != nullptr)
     {
-        LOGCATE("GBufferDeferredShading::Init() GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER");
+        LOGCATE("GBufferDeferredShading ext GL_EXT_shader_framebuffer_fetch");
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    if (strstr(exts, "GL_ARM_shader_framebuffer_fetch_depth_stencil") != nullptr)
+    {
+        LOGCATE("GBufferDeferredShading ext framebuffer_fetch_depth_stencil");
+    }
+
+    if (strstr(exts, "GL_ARM_shader_framebuffer_fetch") != nullptr)
+    {
+        LOGCATE("GBufferDeferredShading ext GL_ARM_shader_framebuffer_fetch");
+    }
+
 
 }
 
+
 void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
 {
-    /*glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 
     glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &gPosition);
@@ -203,7 +212,7 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
     //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
     glDrawBuffers(3, attachments);
 
-    glActiveTexture(GL_TEXTURE3);
+    /*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gDepth);
     glBindTexture(GL_TEXTURE_2D, gDepth);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, screenW, screenH, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
@@ -218,41 +227,24 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
     // It represents two 32-bit values. The first value is a 32-bit floating-point depth value.
     // The second breaks the 32-bit integer value into 24-bits of unused space, followed by 8 bits of stencil
 
-    /*glGenRenderbuffers(1, &gDepth);
+    glGenRenderbuffers(1, &gDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, gDepth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenW, screenH);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gDepth);*/
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gDepth);
 
-    glGenFramebuffers(1, &depthMapFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER))
+    {
+        LOGCATE("GBufferDeferredShading::Init() GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER");
+    }
 
-    glGenTextures(1, &dataBuffer);
+
+    /*glGenTextures(1, &dataBuffer);
     glBindTexture(GL_TEXTURE_2D, dataBuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenW, screenH, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dataBuffer, 0);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dataBuffer, 0);*/
 
-    // create depth texture
-    glGenTextures(1, &depthMap);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, screenW, screenH, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // attach depth texture as FBO's depth buffer
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-    // es 3.0 glDrawBuffers
-    //glDrawBuffers(0, GL_NONE);
-    //glReadBuffer(GL_NONE);
-    glDrawBuffers(1, attachments2);
-
-    if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER))
-    {
-        LOGCATE("GBufferDeferredShading::RecreateFramebuffers() GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER");
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
 
@@ -265,9 +257,9 @@ void GBufferDeferredShading::Draw(int screenW, int screenH)
 
     //glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defaultFrameBuffer);
 
-    //glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-    //glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    //glClearDepthf(0.0f);
+    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClearDepthf(0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 Projection;
@@ -280,7 +272,7 @@ void GBufferDeferredShading::Draw(int screenW, int screenH)
 
     glm::mat4 modelTmp = m_ModelMatrix;
 
-    /*mGbufferPass->use();
+    mGbufferPass->use();
     mGbufferPass->setVec3("lightPos", glm::vec3(0, 0, mBackpack->GetMaxViewDistance()));
     mGbufferPass->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
     mGbufferPass->setVec3("viewPos", glm::vec3(0, 0, mBackpack->GetMaxViewDistance()));
@@ -294,43 +286,11 @@ void GBufferDeferredShading::Draw(int screenW, int screenH)
         mGbufferPass->setMat4("u_ModelMatrix", m_ModelMatrix);
         //mGbufferPass->setMat4("u_MVPMatrix", m_MVPMatrix);
         mBackpack->Draw((*mGbufferPass));
-    }*/
-
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glClearDepthf(0.0f);
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    mDepthPass->use();
-    mDepthPass->setFloat("zNear", zNear);
-    mDepthPass->setFloat("zFar", zFar);
-    mDepthPass->setMat4("u_ViewMatrix", View);
-    mDepthPass->setMat4("u_ProjectionMatrix", Projection);
-    for (int i = 0; i < objectPositions.size(); i++)
-    {
-        m_ModelMatrix = modelTmp;
-        m_ModelMatrix = glm::translate(m_ModelMatrix, objectPositions[i]);
-        //m_MVPMatrix = Projection * View * m_ModelMatrix;
-        mDepthPass->setMat4("u_ModelMatrix", m_ModelMatrix);
-        mBackpack->Draw((*mDepthPass));
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // visualize depth value
-
-    glDisable(GL_DEPTH_TEST);
-    mDrawDepthPass->use();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, dataBuffer);
-    mDrawDepthPass->setInt("depthTexture", 0);
-    mDrawDepthPass->setFloat("zNear", zNear);
-    mDrawDepthPass->setFloat("zFar", zFar);
-    RenderQuad();
-    //RenderQuadNoTexcoord();
-
-    /*glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     mLightingPass->use();
     glActiveTexture(GL_TEXTURE0);
     mLightingPass->setInt("gPosition", 0);
@@ -353,9 +313,9 @@ void GBufferDeferredShading::Draw(int screenW, int screenH)
     mLightingPass->setFloat("quadratic", quadratic);
     mLightingPass->setVec3("lightPos", glm::vec3(0, 0, mBackpack->GetMaxViewDistance()));
     mLightingPass->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-    mLightingPass->setVec3("viewPos", glm::vec3(0, 0, mBackpack->GetMaxViewDistance()));*/
+    mLightingPass->setVec3("viewPos", glm::vec3(0, 0, mBackpack->GetMaxViewDistance()));
 
-    //RenderQuad();
+    RenderQuad();
     //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (const void *)0);
 
 }
