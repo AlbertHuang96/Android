@@ -8,7 +8,6 @@
 precision mediump float;
 
 in vec2 TexCoords;
-out vec4 FragColor;
             
 uniform vec3 lightPos;
 uniform vec3 lightColor;
@@ -20,6 +19,7 @@ uniform float quadratic;
 layout (location = 0) inout vec3 gPosition;
 layout (location = 1) inout vec3 gNormal;
 layout (location = 2) inout vec4 gDiffuseSpec;
+layout (location = 3) inout vec4 gOutput;
 #else
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
@@ -52,6 +52,8 @@ void main()
     vec3 Diffuse = texture(gDiffuseSpec, TexCoords).rgb;
     float Specular = texture(gDiffuseSpec, TexCoords).a;
     #endif
+
+    //gOutput = vec4(Normal, 1.0);
             
     vec3 lighting  = Diffuse * 0.1; // hard-coded ambient component
     vec3 viewDir  = normalize(viewPos - FragPos);
@@ -67,7 +69,7 @@ void main()
     //diffuse *= attenuation;
     //specular *= attenuation;
     
-    lighting += diffuse + specular;    
-    FragColor = vec4(lighting, 1.0);   
+    lighting += diffuse + specular;
+    gOutput = vec4(lighting, 1.0);
             
 }

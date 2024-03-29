@@ -49,6 +49,7 @@ private:
     unsigned int gBuffer;
     unsigned int gDepth;
     unsigned int gPosition, gNormal, gDiffuseSpec;
+    unsigned int gOutput;
     GLint defaultFrameBuffer = GL_NONE;
 
     unsigned int quadVAO = 0;

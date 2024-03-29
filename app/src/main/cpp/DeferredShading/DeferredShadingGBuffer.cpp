@@ -7,10 +7,11 @@
 #include "DeferredShadingGBuffer.h"
 #include "../util/UtilGL.h"
 
-const GLenum attachments[3] = {
+const GLenum attachments[4] = {
         GL_COLOR_ATTACHMENT0,
         GL_COLOR_ATTACHMENT1,
-        GL_COLOR_ATTACHMENT2
+        GL_COLOR_ATTACHMENT2,
+        GL_COLOR_ATTACHMENT3
 };
 
 /*const GLenum attachments2[2] = {
@@ -66,6 +67,19 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     //mBackpack = new Model(path + "/model/poly/Apricot_02_hi_poly.obj");
     mBackpack = new Model(path + "/model/backpack/backpack.obj");
 
+    if (mBackpack->ContainsTextures())
+    {
+        mGbufferPass = new Shader(GBufferVSShaderPath, GBufferFSShaderPath);
+    }
+    else
+    {
+        //mGbufferPass = new Shader(vShaderStr, fNoTextureShaderStr);
+    }
+
+
+    mLightingPass = new Shader(LightingVSShaderPath, LightingFSShaderPath);
+
+
     objectPositions.push_back(glm::vec3(-5.0,  -0.5, -3.0));
     objectPositions.push_back(glm::vec3( 3.0,  -0.5, -3.0));
     objectPositions.push_back(glm::vec3( 0.0,  -0.5, -3.0));
@@ -82,8 +96,15 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
 
     zNear = 2.0f, zFar = 100.0f;
 
+    if (screenW == 0 || screenH == 0)
+    {
+        return;
+    }
+
     glGenFramebuffers(1, &gBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+
+    //UtilGL::CheckGLError("Init after bind gBuffer");
 
     glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &gPosition);
@@ -91,7 +112,10 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+
+    //UtilGL::CheckGLError("Init after bind gPosition");
+
     // normal color buffer
     glActiveTexture(GL_TEXTURE1);
     glGenTextures(1, &gNormal);
@@ -99,18 +123,33 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+
+    //UtilGL::CheckGLError("Init after bind gNormal");
+
     // color + specular color buffer
     glActiveTexture(GL_TEXTURE2);
     glGenTextures(1, &gDiffuseSpec);
     glBindTexture(GL_TEXTURE_2D, gDiffuseSpec);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenW, screenH, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gDiffuseSpec, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gDiffuseSpec, 0);
+    // GL_DRAW_FRAMEBUFFER  draw and read?
+    //UtilGL::CheckGLError("Init after bind gDiffuseSpec");
+
+    glActiveTexture(GL_TEXTURE3);
+    glGenTextures(1, &gOutput);
+    glBindTexture(GL_TEXTURE_2D, gOutput);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOutput, 0);
+
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
     //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(3, attachments);
+    glDrawBuffers(4, attachments);
 
     /*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gDepth);
@@ -129,23 +168,17 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenW, screenH);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gDepth);
 
+    //UtilGL::CheckGLError("Init after bind gDepth");
+
+    //GL_FRAMEBUFFER_COMPLETE
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    LOGCATE("check FBO status %d", status);
+    //GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT  width/height = 0
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER))
     {
         LOGCATE("GBufferDeferredShading::Init() GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER");
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    if (mBackpack->ContainsTextures())
-    {
-        mGbufferPass = new Shader(GBufferVSShaderPath, GBufferFSShaderPath);
-    }
-    else
-    {
-        //mGbufferPass = new Shader(vShaderStr, fNoTextureShaderStr);
-    }
-
-
-    mLightingPass = new Shader(LightingVSShaderPath, LightingFSShaderPath);
 
     //mDrawDepthPass = new Shader(QuadVSShaderPath, DepthFSShaderPath);
 
@@ -180,10 +213,16 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
 
 }
 
-//libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0xa8 in tid 19284 (GLThread 59), pid 19236 (enderplayground)
+
 void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
 {
+    //UtilGL::CheckGLError("RecreateFramebuffers before bind gBuffer");
+
+    // renderdoc //libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR),
+    glGenFramebuffers(1, &gBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+
+    //UtilGL::CheckGLError("RecreateFramebuffers after bind gBuffer");
 
     glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &gPosition);
@@ -191,7 +230,7 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
     // normal color buffer
     glActiveTexture(GL_TEXTURE1);
     glGenTextures(1, &gNormal);
@@ -199,7 +238,7 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
     // color + specular color buffer
     glActiveTexture(GL_TEXTURE2);
     glGenTextures(1, &gDiffuseSpec);
@@ -207,10 +246,22 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenW, screenH, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gDiffuseSpec, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gDiffuseSpec, 0);
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
     //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(3, attachments);
+
+
+    glActiveTexture(GL_TEXTURE3);
+    glGenTextures(1, &gOutput);
+    glBindTexture(GL_TEXTURE_2D, gOutput);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOutput, 0);
+
+    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
+    //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+    glDrawBuffers(4, attachments);
 
     /*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gDepth);
@@ -237,6 +288,8 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
         LOGCATE("GBufferDeferredShading::Init() GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER");
     }
 
+    glViewport(0, 0, screenW, screenH);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     /*glGenTextures(1, &dataBuffer);
@@ -249,8 +302,7 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
 
 }
 
-//com.example.renderplayground A/libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR),
-// fault addr 0xa8 in tid 7886 (GLThread 44), pid 7835 (enderplayground)
+
 void GBufferDeferredShading::Draw(int screenW, int screenH)
 {
     if(mBackpack == nullptr) return;
@@ -289,35 +341,50 @@ void GBufferDeferredShading::Draw(int screenW, int screenH)
         mBackpack->Draw((*mGbufferPass));
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glClear(GL_COLOR_BUFFER_BIT);
     mLightingPass->use();
-    glActiveTexture(GL_TEXTURE0);
-    mLightingPass->setInt("gPosition", 0);
-    glBindTexture(GL_TEXTURE_2D, gPosition);
+    //glActiveTexture(GL_TEXTURE0);
+    //mLightingPass->setInt("gPosition", 0);
+    //glBindTexture(GL_TEXTURE_2D, gPosition);
     //UtilGL::setInt(mLightingPass->ID, "gPosition", 0);
 
-    glActiveTexture(GL_TEXTURE1);
-    mLightingPass->setInt("gNormal", 1);
-    glBindTexture(GL_TEXTURE_2D, gNormal);
+    //glActiveTexture(GL_TEXTURE1);
+    //mLightingPass->setInt("gNormal", 1);
+    //glBindTexture(GL_TEXTURE_2D, gNormal);
     //UtilGL::setInt(mLightingPass->ID, "gNormal", 1);
 
-    glActiveTexture(GL_TEXTURE2);
-    mLightingPass->setInt("gDiffuseSpec", 2);
-    glBindTexture(GL_TEXTURE_2D, gDiffuseSpec);
+    //glActiveTexture(GL_TEXTURE2);
+    //mLightingPass->setInt("gDiffuseSpec", 2);
+    //glBindTexture(GL_TEXTURE_2D, gDiffuseSpec);
     //UtilGL::setInt(mLightingPass->ID, "gDiffuseSpec", 2);
 
     const float linear = 0.7f;
     const float quadratic = 1.8f;
-    mLightingPass->setFloat("linear", linear);
-    mLightingPass->setFloat("quadratic", quadratic);
     mLightingPass->setVec3("lightPos", glm::vec3(0, 0, mBackpack->GetMaxViewDistance()));
     mLightingPass->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
     mLightingPass->setVec3("viewPos", glm::vec3(0, 0, mBackpack->GetMaxViewDistance()));
+    mLightingPass->setFloat("linear", linear);
+    mLightingPass->setFloat("quadratic", quadratic);
 
+    glDisable(GL_DEPTH_TEST);
     RenderQuad();
     //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (const void *)0);
+
+    glEnable(GL_DEPTH_TEST);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+    glBlitFramebuffer(0, 0, screenW, screenH,
+                      0, 0, screenW, screenH,
+                      GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+    glReadBuffer(GL_COLOR_ATTACHMENT3);
+    glBlitFramebuffer(0, 0, screenW, screenH,
+                      0, 0, screenW, screenH,
+                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+
 
 }
 

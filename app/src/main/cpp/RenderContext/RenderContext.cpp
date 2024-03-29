@@ -63,12 +63,16 @@ void RenderContext::OnSurfaceCreated(JNIEnv* env, jobject assetManager)
 {
     UtilGL::setEnvAndAssetManager(env, assetManager);
     glClearColor(1.0f,1.0f,1.0f, 1.0f);
+    if (rCurrentSample)
+    {
+        rCurrentSample->Init(rScreenW, rScreenH);
+    }
 }
 
 void RenderContext::OnSurfaceChanged(int width, int height)
 {
     //LOGCATE("MyGLRenderContext::OnSurfaceChanged [w, h] = [%d, %d]", width, height);
-    glViewport(0, 0, width, height);
+
     rScreenW = width;
     rScreenH = height;
     rCurrentSample->RecreateFramebuffers(rScreenW, rScreenH);
@@ -81,7 +85,6 @@ void RenderContext::OnDrawFrame()
 
     if (rCurrentSample)
     {
-        rCurrentSample->Init(rScreenW, rScreenH);
         rCurrentSample->Draw(rScreenW, rScreenH);
     }
 }
