@@ -63,8 +63,8 @@ set(third-party-libs
         assimp
         opencv_java3)
 
-target_compile_options(RangerEngine PUBLIC -fsanitize=address -fno-omit-frame-pointer)
-set_target_properties(RangerEngine PROPERTIES LINK_FLAGS -fsanitize=address)
+#target_compile_options(RangerEngine PUBLIC -fsanitize=address -fno-omit-frame-pointer)
+#set_target_properties(RangerEngine PROPERTIES LINK_FLAGS -fsanitize=address)
 
 target_link_libraries( # Specifies the target library.
         RangerEngine

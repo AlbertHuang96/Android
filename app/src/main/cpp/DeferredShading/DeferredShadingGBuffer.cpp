@@ -180,7 +180,7 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
 
 }
 
-
+//libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0xa8 in tid 19284 (GLThread 59), pid 19236 (enderplayground)
 void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -237,6 +237,7 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
         LOGCATE("GBufferDeferredShading::Init() GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER");
     }
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     /*glGenTextures(1, &dataBuffer);
     glBindTexture(GL_TEXTURE_2D, dataBuffer);
