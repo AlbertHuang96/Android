@@ -2,7 +2,6 @@
 
 #ifdef GL_EXT_shader_framebuffer_fetch
 #extension GL_EXT_shader_framebuffer_fetch : enable
-//#extension GL_ARM_shader_framebuffer_fetch_depth_stencil : enable
 #endif
 
 precision mediump float;

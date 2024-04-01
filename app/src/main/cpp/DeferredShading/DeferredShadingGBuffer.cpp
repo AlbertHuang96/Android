@@ -10,8 +10,7 @@
 const GLenum attachments[4] = {
         GL_COLOR_ATTACHMENT0,
         GL_COLOR_ATTACHMENT1,
-        GL_COLOR_ATTACHMENT2,
-        GL_COLOR_ATTACHMENT3
+        GL_COLOR_ATTACHMENT2
 };
 
 /*const GLenum attachments2[2] = {
@@ -138,18 +137,19 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gDiffuseSpec, 0);
     // GL_DRAW_FRAMEBUFFER  draw and read?
     //UtilGL::CheckGLError("Init after bind gDiffuseSpec");
+    glDrawBuffers(3, attachments);
 
-    glActiveTexture(GL_TEXTURE3);
+    /*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gOutput);
     glBindTexture(GL_TEXTURE_2D, gOutput);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOutput, 0);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOutput, 0);*/
 
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
     //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(4, attachments);
+    //glDrawBuffers(4, attachments);
 
     /*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gDepth);
@@ -249,19 +249,19 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gDiffuseSpec, 0);
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
     //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+    glDrawBuffers(3, attachments);
 
-
-    glActiveTexture(GL_TEXTURE3);
+    /*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gOutput);
     glBindTexture(GL_TEXTURE_2D, gOutput);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOutput, 0);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOutput, 0);*/
 
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
     //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(4, attachments);
+    //glDrawBuffers(4, attachments);
 
     /*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gDepth);
@@ -344,45 +344,55 @@ void GBufferDeferredShading::Draw(int screenW, int screenH)
     //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     mLightingPass->use();
-    //glActiveTexture(GL_TEXTURE0);
-    //mLightingPass->setInt("gPosition", 0);
-    //glBindTexture(GL_TEXTURE_2D, gPosition);
+    glActiveTexture(GL_TEXTURE0);
+    mLightingPass->setInt("gPosition", 0);
+    glBindTexture(GL_TEXTURE_2D, gPosition);
     //UtilGL::setInt(mLightingPass->ID, "gPosition", 0);
 
-    //glActiveTexture(GL_TEXTURE1);
-    //mLightingPass->setInt("gNormal", 1);
-    //glBindTexture(GL_TEXTURE_2D, gNormal);
+    glActiveTexture(GL_TEXTURE1);
+    mLightingPass->setInt("gNormal", 1);
+    glBindTexture(GL_TEXTURE_2D, gNormal);
     //UtilGL::setInt(mLightingPass->ID, "gNormal", 1);
 
-    //glActiveTexture(GL_TEXTURE2);
-    //mLightingPass->setInt("gDiffuseSpec", 2);
-    //glBindTexture(GL_TEXTURE_2D, gDiffuseSpec);
+    glActiveTexture(GL_TEXTURE2);
+    mLightingPass->setInt("gDiffuseSpec", 2);
+    glBindTexture(GL_TEXTURE_2D, gDiffuseSpec);
     //UtilGL::setInt(mLightingPass->ID, "gDiffuseSpec", 2);
 
-    const float linear = 0.7f;
-    const float quadratic = 1.8f;
+    //const float linear = 0.7f;
+    //const float quadratic = 1.8f;
+    //mLightingPass->setFloat("linear", linear);
+    //mLightingPass->setFloat("quadratic", quadratic);
     mLightingPass->setVec3("lightPos", glm::vec3(0, 0, mBackpack->GetMaxViewDistance()));
     mLightingPass->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
     mLightingPass->setVec3("viewPos", glm::vec3(0, 0, mBackpack->GetMaxViewDistance()));
-    mLightingPass->setFloat("linear", linear);
-    mLightingPass->setFloat("quadratic", quadratic);
+    mLightingPass->setVec2("invViewport", glm::vec2(1.0 / screenW, 1.0 / screenH));
+    glm::mat4 invProj = glm::inverse(Projection);
+    glm::mat4 invView = glm::inverse(View);
+    mLightingPass->setMat4("invViewProj", invView * invProj);
+    //mLightingPass->setMat4("u_ViewMatrix", View);
+    //mLightingPass->setMat4("u_ProjectionMatrix", Projection);
+
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
 
     glDisable(GL_DEPTH_TEST);
     RenderQuad();
     //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (const void *)0);
 
     glEnable(GL_DEPTH_TEST);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
     glBlitFramebuffer(0, 0, screenW, screenH,
                       0, 0, screenW, screenH,
                       GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-    glReadBuffer(GL_COLOR_ATTACHMENT3);
-    glBlitFramebuffer(0, 0, screenW, screenH,
-                      0, 0, screenW, screenH,
-                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    //glReadBuffer(GL_COLOR_ATTACHMENT3);
+    //glBlitFramebuffer(0, 0, screenW, screenH,
+    //                 0, 0, screenW, screenH,
+    //                 GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 
 
@@ -437,7 +447,8 @@ void GBufferDeferredShading::UpdateMVPMatrix(glm::mat4 &Projection, int angleX, 
 
     // f = 1.0 / tan(fovy_rad / 2)
     //float f = 1.0 / tan(45 / 2);
-    float f2 = 1.0 / tan(45 * 3.14159 / 180 / 2);
+    //float f2 = 1.0 / tan(45 * 3.14159 / 180 / 2);
+    float f2 = 1.0 / tan(glm::radians(45.0f) / 2);
     Projection = glm::mat4(f2 / ratio, 0, 0, 0,
                             0,     f2, 0, 0,
                             0, 0, - zNear / (zFar - zNear), -1,
