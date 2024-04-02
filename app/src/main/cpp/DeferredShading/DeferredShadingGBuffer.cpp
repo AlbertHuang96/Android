@@ -7,6 +7,8 @@
 #include "DeferredShadingGBuffer.h"
 #include "../util/UtilGL.h"
 
+#include <GLES2/gl2ext.h>
+
 const GLenum attachments[4] = {
         GL_COLOR_ATTACHMENT0,
         GL_COLOR_ATTACHMENT1,
@@ -48,7 +50,7 @@ GBufferDeferredShading::GBufferDeferredShading()
     mDrawDepthPass = nullptr;
     mGbufferPass = nullptr;
     mLightingPass = nullptr;
-    mLightBoxPass = nullptr;
+    //mLightBoxPass = nullptr;
 
 }
 
@@ -59,6 +61,20 @@ GBufferDeferredShading::~GBufferDeferredShading()
 
 void GBufferDeferredShading::Init(int screenW, int screenH)
 {
+    const char* exts = (const char*)glGetString(GL_EXTENSIONS);
+    if (strstr(exts, "GL_EXT_shadeer_pixel_local_storage") != nullptr)
+    {
+        LOGCATE("GBufferDeferredShading ext GL_EXT_shadeer_pixel_local_storage");
+    }
+
+    //gl2ext.h
+    //#ifndef GL_EXT_shader_pixel_local_storage
+    //#define GL_EXT_shader_pixel_local_storage 1
+    //#define GL_MAX_SHADER_PIXEL_LOCAL_STORAGE_FAST_SIZE_EXT 0x8F63
+    //#define GL_MAX_SHADER_PIXEL_LOCAL_STORAGE_SIZE_EXT 0x8F67
+    //#define GL_SHADER_PIXEL_LOCAL_STORAGE_EXT 0x8F64
+    //#endif /* GL_EXT_shader_pixel_local_storage */
+
     //if(mBackpack != nullptr)
         //return;
 
@@ -68,7 +84,7 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
 
     if (mBackpack->ContainsTextures())
     {
-        mGbufferPass = new Shader(GBufferVSShaderPath, GBufferFSShaderPath);
+        mGbufferPass = new Shader(vsGBufferPLSShaderPath, fsGBufferPLSShaderPath);
     }
     else
     {
@@ -76,7 +92,9 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     }
 
 
-    mLightingPass = new Shader(LightingVSShaderPath, LightingFSShaderPath);
+    mLightingPass = new Shader(vsLightingPLSShaderPath, fsLightingPLSShaderPath);
+
+    mPLSResolvePass = new Shader(vsResolvePLSShaderPath, fsResolvePLSShaderPath);
 
 
     objectPositions.push_back(glm::vec3(-5.0,  -0.5, -3.0));
@@ -100,7 +118,33 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
         return;
     }
 
-    glGenFramebuffers(1, &gBuffer);
+    glGenFramebuffers(1, &gPLS);
+    glBindFramebuffer(GL_FRAMEBUFFER, gPLS);
+
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &gPLSAttachment);
+    glBindTexture(GL_TEXTURE_2D, gPLSAttachment);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPLSAttachment, 0);
+
+    glGenRenderbuffers(1, &gDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, gDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenW, screenH);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gDepth);
+
+    unsigned int attachmentsPLS[1] = { GL_COLOR_ATTACHMENT0 };
+    glDrawBuffers(1, attachmentsPLS);
+
+    if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER))
+    {
+        LOGCATE("GBufferDeferredShading::Init() GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER");
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    /*glGenFramebuffers(1, &gBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 
     //UtilGL::CheckGLError("Init after bind gBuffer");
@@ -139,19 +183,19 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     //UtilGL::CheckGLError("Init after bind gDiffuseSpec");
     glDrawBuffers(3, attachments);
 
-    /*glActiveTexture(GL_TEXTURE3);
+    *//*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gOutput);
     glBindTexture(GL_TEXTURE_2D, gOutput);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOutput, 0);*/
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOutput, 0);*//*
 
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
     //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
     //glDrawBuffers(4, attachments);
 
-    /*glActiveTexture(GL_TEXTURE3);
+    *//*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gDepth);
     glBindTexture(GL_TEXTURE_2D, gDepth);
     //GL_DEPTH_COMPONENT32F
@@ -161,7 +205,7 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);*/
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);*//*
 
     glGenRenderbuffers(1, &gDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, gDepth);
@@ -178,7 +222,7 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
     {
         LOGCATE("GBufferDeferredShading::Init() GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER");
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
 
     //mDrawDepthPass = new Shader(QuadVSShaderPath, DepthFSShaderPath);
 
@@ -186,7 +230,7 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
 
 
     const char* version = (const char*)glGetString(GL_VERSION);
-    const char* exts = (const char*)glGetString(GL_EXTENSIONS);
+    //const char* exts = (const char*)glGetString(GL_EXTENSIONS);
 
     std::vector<std::string> extStrings;
     char* token = (char*)glGetString(GL_EXTENSIONS);
@@ -210,16 +254,47 @@ void GBufferDeferredShading::Init(int screenW, int screenH)
         LOGCATE("GBufferDeferredShading ext GL_ARM_shader_framebuffer_fetch");
     }
 
-
+    if (strstr(exts, "GL_EXT_shadeer_pixel_local_storage") != nullptr)
+    {
+        LOGCATE("GBufferDeferredShading ext GL_EXT_shadeer_pixel_local_storage");
+    }
 }
 
 
 void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
 {
+    glGenFramebuffers(1, &gPLS);
+    glBindFramebuffer(GL_FRAMEBUFFER, gPLS);
+
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &gPLSAttachment);
+    glBindTexture(GL_TEXTURE_2D, gPLSAttachment);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPLSAttachment, 0);
+
+    glGenRenderbuffers(1, &gDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, gDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenW, screenH);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gDepth);
+
+    unsigned int attachmentsPLS[1] = { GL_COLOR_ATTACHMENT0 };
+    glDrawBuffers(1, attachmentsPLS);
+
+    if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER))
+    {
+        LOGCATE("GBufferDeferredShading::Init() GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER");
+    }
+
+    glViewport(0, 0, screenW, screenH);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     //UtilGL::CheckGLError("RecreateFramebuffers before bind gBuffer");
 
     // renderdoc //libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR),
-    glGenFramebuffers(1, &gBuffer);
+    /*glGenFramebuffers(1, &gBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 
     //UtilGL::CheckGLError("RecreateFramebuffers after bind gBuffer");
@@ -251,19 +326,19 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
     //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
     glDrawBuffers(3, attachments);
 
-    /*glActiveTexture(GL_TEXTURE3);
+    *//*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gOutput);
     glBindTexture(GL_TEXTURE_2D, gOutput);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, screenW, screenH, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOutput, 0);*/
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOutput, 0);*//*
 
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
     //unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
     //glDrawBuffers(4, attachments);
 
-    /*glActiveTexture(GL_TEXTURE3);
+    *//*glActiveTexture(GL_TEXTURE3);
     glGenTextures(1, &gDepth);
     glBindTexture(GL_TEXTURE_2D, gDepth);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, screenW, screenH, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
@@ -272,7 +347,7 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);*/
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);*//*
 
     //There is one very special packed type​ field. It is GL_FLOAT_32_UNSIGNED_INT_24_8_REV. This can only be used in tandem with images that use the GL_DEPTH32F_STENCIL8 image format.
     // It represents two 32-bit values. The first value is a 32-bit floating-point depth value.
@@ -290,7 +365,7 @@ void GBufferDeferredShading::RecreateFramebuffers(int screenW, int screenH)
 
     glViewport(0, 0, screenW, screenH);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
 
     /*glGenTextures(1, &dataBuffer);
     glBindTexture(GL_TEXTURE_2D, dataBuffer);
@@ -310,7 +385,9 @@ void GBufferDeferredShading::Draw(int screenW, int screenH)
 
     //glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defaultFrameBuffer);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, gPLS);
+
+    glEnable(GL_SHADER_PIXEL_LOCAL_STORAGE_EXT);
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClearDepthf(0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -343,7 +420,7 @@ void GBufferDeferredShading::Draw(int screenW, int screenH)
 
     //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    mLightingPass->use();
+    /*mLightingPass->use();
     glActiveTexture(GL_TEXTURE0);
     mLightingPass->setInt("gPosition", 0);
     glBindTexture(GL_TEXTURE_2D, gPosition);
@@ -357,7 +434,7 @@ void GBufferDeferredShading::Draw(int screenW, int screenH)
     glActiveTexture(GL_TEXTURE2);
     mLightingPass->setInt("gDiffuseSpec", 2);
     glBindTexture(GL_TEXTURE_2D, gDiffuseSpec);
-    //UtilGL::setInt(mLightingPass->ID, "gDiffuseSpec", 2);
+    //UtilGL::setInt(mLightingPass->ID, "gDiffuseSpec", 2);*/
 
     //const float linear = 0.7f;
     //const float quadratic = 1.8f;
@@ -374,17 +451,25 @@ void GBufferDeferredShading::Draw(int screenW, int screenH)
     //mLightingPass->setMat4("u_ProjectionMatrix", Projection);
 
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+    //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    //glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
 
-    glDisable(GL_DEPTH_TEST);
+    //glDisable(GL_DEPTH_TEST);
     RenderQuad();
-    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (const void *)0);
+
+    mPLSResolvePass->use();
+    RenderQuad();
+
+    glDisable(GL_SHADER_PIXEL_LOCAL_STORAGE_EXT);
 
     glEnable(GL_DEPTH_TEST);
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, gPLS);
+
+    glBlitFramebuffer(0, 0, screenW, screenH,
+                      0, 0, screenW, screenH,
+                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
     glBlitFramebuffer(0, 0, screenW, screenH,
                       0, 0, screenW, screenH,
                       GL_DEPTH_BUFFER_BIT, GL_NEAREST);
@@ -419,11 +504,11 @@ void GBufferDeferredShading::Destroy()
         mLightingPass = nullptr;
     }
 
-    if (mLightBoxPass != nullptr) {
+    /*if (mLightBoxPass != nullptr) {
         mLightBoxPass->Destroy();
         delete mLightBoxPass;
         mLightBoxPass = nullptr;
-    }
+    }*/
 }
 
 void GBufferDeferredShading::UpdateMVPMatrix(glm::mat4 &Projection, int angleX, int angleY, int screenW, int screenH)

@@ -46,6 +46,9 @@ private:
     unsigned int depthMap;
     unsigned int dataBuffer;
 
+    unsigned int gPLS;
+    unsigned int gPLSAttachment;
+
     unsigned int gBuffer;
     unsigned int gDepth;
     unsigned int gPosition, gNormal, gDiffuseSpec;
@@ -60,12 +63,20 @@ private:
 
     Shader* mGbufferPass;
     Shader* mLightingPass;
-    Shader* mLightBoxPass;
+    Shader* mPLSResolvePass;
+    //Shader* mLightBoxPass;
 
     const char* GBufferVSShaderPath = "shaders/GBufferVS.glsl";
     const char* GBufferFSShaderPath = "shaders/GBufferFS.glsl";
     const char* LightingVSShaderPath = "shaders/LightingVS.glsl";
     const char* LightingFSShaderPath = "shaders/LightingFS.glsl";
+
+    const char* vsGBufferPLSShaderPath = "shaders/vsGBufferPLS.glsl";
+    const char* fsGBufferPLSShaderPath = "shaders/fsGBufferPLS.glsl";
+    const char* vsLightingPLSShaderPath = "shaders/vsLightingPLS.glsl";
+    const char* fsLightingPLSShaderPath = "shaders/fsLightingPLS.glsl";
+    const char* vsResolvePLSShaderPath = "shaders/vsResolvePLS.glsl";
+    const char* fsResolvePLSShaderPath = "shaders/fsResolvePLS.glsl";
 
     const char* QuadVSShaderPath = "shaders/QuadVS.glsl";
     const char* DepthFSShaderPath = "shaders/RenderDepthFS.glsl";

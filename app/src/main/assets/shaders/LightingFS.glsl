@@ -99,7 +99,7 @@ void main()
     //vec3 lightDir = normalize(lightPos - fragPos);
     //vec3 viewDir  = normalize(viewPos - vec3(fragPos.xy, FragPos.z));
     //vec3 lightDir = normalize(lightPos - vec3(fragPos.xy, FragPos.z));
-    
+
     vec3 viewDir  = normalize(viewPos - FragPos);
     vec3 lightDir = normalize(lightPos - FragPos);
     vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * lightColor;
@@ -115,7 +115,7 @@ void main()
     
     lighting += diffuse + specular;
 
-outputColor = vec4(lighting, 1.0);
+    outputColor = vec4(lighting, 1.0);
 #ifdef GL_EXT_shader_framebuffer_fetch
     //gOutput = vec4(lighting, 1.0);
 #else
