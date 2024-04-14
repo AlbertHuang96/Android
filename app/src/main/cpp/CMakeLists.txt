@@ -61,7 +61,7 @@ set_target_properties(assimp PROPERTIES IMPORTED_LOCATION ${jnilibs}/${ANDROID_A
 add_library(opencv_java3 SHARED IMPORTED )
 set_target_properties(opencv_java3 PROPERTIES IMPORTED_LOCATION ${jnilibs}/${ANDROID_ABI}/libopencv_java3.so)
 
-set(CPUINFO_LIBRARIES ${jnilibs}/${ANDROID_ABI}/libcpuinfo.a)
+#set(CPUINFO_LIBRARIES ${jnilibs}/${ANDROID_ABI}/libcpuinfo.a)
 
 
 set(third-party-libs
@@ -75,7 +75,7 @@ target_link_libraries( # Specifies the target library.
         # included in the NDK.
         ${log-lib}
         ${third-party-libs}
-        ${CPUINFO_LIBRARIES}
+        #${CPUINFO_LIBRARIES}
         #assimp
         EGL
         GLESv3

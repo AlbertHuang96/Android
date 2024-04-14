@@ -7,24 +7,32 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private static final String[] REQUEST_PERMISSIONS = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+            //Manifest.permission.RECORD_AUDIO,
     };
     private static final int PERMISSION_REQUEST_CODE = 1;
+    private static final int REQUEST_CODE = 1024;
 
     //private SensorManager mSensorManager;
 
@@ -37,41 +45,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public native int bindThreadToCore2(int core);
 
-    public native String getCpuInfo();
+    //public native String getCpuInfo();
 
     public native void testFalseSharing();
 
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //native_Helloworld();
 
-        testFalseSharing();
+        //Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+        //intent.setData(Uri.parse("package:" + getPackageName()));
+        //startActivity(intent);
 
-        //String cpuinfoCache = getCpuInfo();
-        //Log.e("Cpu cache : ", cpuinfoCache);
-        //CPU Cache: L1 Data
-        //     > size            : 32768
-        //     > associativity   : 4
-        //     > sets            : 128
-        //     > partitions      : 1
-        //     > line_size       : 64
-        //     > flags           : 0
-        //     > processor_start : 2
-        //     > processor_count : 1
-        //
+        requestPermission();
 
-        //
-        //task1();
-        //task2();
+        //File externalStorageDirectory = Environment.getExternalStorageDirectory();
+        String fileDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+        CommonUtils.copyAssetsDirToSDCard(MainActivity.this, "hotfix", fileDir + "/odex");
 
-        //mGLRender.init();
-        //mGLSurfaceView = new SurfaceViewGL(this, mGLRender);
-        //mGLSurfaceView.setRenderMode(RENDERMODE_CONTINUOUSLY);
-        //setContentView(mGLSurfaceView);
-        //mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        //String fileDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath();
+        FixDexNative fixNative = new FixDexNative(this);
+        fixNative.prepareToFix(fileDir + "/odex");
+
+        BugClass bugClass = new BugClass();
+
+        Log.d(TAG, "bugClass test = " + bugClass.test());
+        //com.example.renderplayground D/MainActivity: bugClass test = 1
+
+        //bugClass.test();
+
     }
 
     private void task1() {
@@ -114,6 +119,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }).start();
     }
 
+    private void requestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (Environment.isExternalStorageManager()) {
+
+            } else {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivity(intent);
+                //intent.setData(Uri.parse("package:" + getPackageName()));
+                //startActivityForResult(intent, REQUEST_CODE);
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!hasPermissionsGranted(REQUEST_PERMISSIONS)) {
+                ActivityCompat.requestPermissions(this, REQUEST_PERMISSIONS, REQUEST_CODE);
+            }
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -125,6 +147,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         String fileDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
         //CommonUtils.copyAssetsDirToSDCard(MainActivity.this, "poly", fileDir + "/model");
         CommonUtils.copyAssetsDirToSDCard(MainActivity.this, "backpack", fileDir + "/model");
+
     }
 
     @Override
@@ -136,6 +159,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    // create a permission activity
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+        }
     }
 
     @Override

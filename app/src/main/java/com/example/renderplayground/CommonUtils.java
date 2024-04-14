@@ -18,13 +18,16 @@ public class CommonUtils {
                 InputStream inputStream = context.getAssets().open(assetsDirName);
                 byte[] mByte = new byte[1024];
                 int bt = 0;
+
+                Log.d(TAG, "copyAssetsDirToSDCard() new File pathname = " + sdCardPath + File.separator
+                                + assetsDirName.substring(assetsDirName.lastIndexOf('/')));
                 File file = new File(sdCardPath + File.separator
                         + assetsDirName.substring(assetsDirName.lastIndexOf('/')));
-                if (!file.exists()) {
-                    file.createNewFile();
-                } else {
-                    return;
-                }
+                //if (!file.exists()) {
+                //    file.createNewFile();
+                //} else {
+                //    return;
+                //}
                 FileOutputStream fos = new FileOutputStream(file);
                 while ((bt = inputStream.read(mByte)) != -1) {
                     fos.write(mByte, 0, bt);
