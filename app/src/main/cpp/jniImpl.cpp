@@ -241,7 +241,9 @@ Java_com_example_renderplayground_FixDexNative_replace(JNIEnv *env, jclass clazz
     size_t secondMethod = (size_t)env->GetStaticMethodID(clazz2, "f2", "()V");
     size_t methodSize = secondMethod - firstMethod;
     LOGCATE("size of ArtMethod = %ld", methodSize);//E/RangerEngine: size of ArtMethod = 2
-    //memcpy(wrong, right, methodSize);
+
+    size_t sizeArtMethod = sizeof(art::ArtMethod);
+    memcpy(wrong, right, sizeArtMethod);
 
     //wrong->declaring_class_ = right->declaring_class_;
     //wrong->access_flags_ = right->access_flags_;
