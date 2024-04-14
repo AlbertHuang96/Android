@@ -67,11 +67,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         CommonUtils.copyAssetsDirToSDCard(MainActivity.this, "hotfix", fileDir + "/odex");
 
         //String fileDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath();
-        FixDexNative fixNative = new FixDexNative(this);
-        fixNative.prepareToFix(fileDir + "/odex");
+        //FixDexNative fixNative = new FixDexNative(this);
+        //fixNative.prepareToFix(fileDir + "/odex");
+
+        FixDexJava fixJava = new FixDexJava();
+        fixJava.fixDex(MainActivity.this, fileDir + "/odex");
 
         BugClass bugClass = new BugClass();
-
+        bugClass.test();
         Log.d(TAG, "bugClass test = " + bugClass.test());
         //com.example.renderplayground D/MainActivity: bugClass test = 1
 
