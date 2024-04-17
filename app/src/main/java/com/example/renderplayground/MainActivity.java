@@ -21,6 +21,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
 
 import java.io.File;
 
@@ -55,31 +56,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-        //intent.setData(Uri.parse("package:" + getPackageName()));
-        //startActivity(intent);
-
-        requestPermission();
-
-        //File externalStorageDirectory = Environment.getExternalStorageDirectory();
-        String fileDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-        CommonUtils.copyAssetsDirToSDCard(MainActivity.this, "hotfix", fileDir + "/odex");
-
-        //String fileDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath();
-        //FixDexNative fixNative = new FixDexNative(this);
-        //fixNative.prepareToFix(fileDir + "/odex");
-
-        FixDexJava fixJava = new FixDexJava();
-        fixJava.fixDex(MainActivity.this, fileDir + "/odex");
-
-        BugClass bugClass = new BugClass();
-        bugClass.test();
-        Log.d(TAG, "bugClass test = " + bugClass.test());
-        //com.example.renderplayground D/MainActivity: bugClass test = 1
-
-        //bugClass.test();
-
     }
 
     private void task1() {
