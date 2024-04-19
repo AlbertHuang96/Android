@@ -10,6 +10,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -54,7 +55,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
+        Resources res = getResources();
+        int id = res.getIdentifier("activity_main","layout", getPackageName());
+        Log.d("onCreate res id = ", String.valueOf(id));
+        setContentView(id);
 
     }
 
