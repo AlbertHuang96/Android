@@ -1,10 +1,25 @@
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+pluginManagement {
     repositories {
+        //maven { url './maven-repo' }
+        maven { url './InjectClassPlugin/build/maven-repo' }
+    }
+    //plugins {
+    //    id 'com.example.injectclassplugin'
+    //}
+}
+
+
+dependencyResolutionManagement {
+    /*repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        maven { url 'InjectClassPlugin/build/maven-repo' }
         google()
         mavenCentral()
-        jcenter() // Warning: this repository is going to shut down soon
-    }
+        //jcenter() // Warning: this repository is going to shut down soon
+    }*/
 }
+
 rootProject.name = "RenderPlayground"
 include ':app'
+
+include ':InjectClassPlugin'

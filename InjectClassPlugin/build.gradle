@@ -1,0 +1,72 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'groovy'
+}
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation 'com.android.tools.build:gradle:7.0.2'
+    implementation 'org.javassist:javassist:3.24.0-GA'
+    implementation 'org.apache.httpcomponents:httpclient:4.2.1'
+    //implementation 'com.google.android.material:material:1.3.0'
+    implementation files('libs\\commons-io-2.16.1.jar')
+}
+
+repositories {
+    maven { url 'https://maven.aliyun.com/repository/google' }
+    maven { url 'https://maven.aliyun.com/repository/public/' }
+    //maven { url 'https://maven.aliyun.com/nexus/content/groups/public' }
+    //google()
+    //mavenCentral()
+}
+
+group 'com.example.injectclassplugin'
+version '1.0.0'
+
+// afterEvaluate only if its android?
+//afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId = group
+                artifactId = 'MyPlugin'
+                version = version
+
+                from components.java
+                //components.all components.java components.release, web
+                //android jar: Could not get unknown property 'java' for SoftwareComponentInternal set of type org.gradle
+                //https://blog.csdn.net/sinat_27171121/article/details/123989140
+            }
+        }
+        repositories {
+            //maven { url uri("../maven-repo") }
+            maven { url uri("build/maven-repo") }
+        }
+        /*repositories {
+            maven {
+                url layout.buildDirectory.dir("maven-repo")
+            }
+            maven { url uri("../maven-repo") }
+        }*/
+    }
+//}
+
+gradlePlugin {
+    plugins {
+        InjectClassPlugin {
+            id = 'com.example.injectclassplugin.MyPlugin'
+            implementationClass = 'com.example.injectclassplugin.InjectClassPlugin'
+        }
+    }
+}
+
+/*
+sourceSets {
+    main {
+        groovy {
+            sirDir 'src/main/groovy'
+        }
+    }
+}*/
