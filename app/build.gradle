@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
-    id 'com.example.injectclassplugin.MyPlugin'
+    //id 'com.example.injectclassplugin.MyPlugin'
+    id 'com.example.printdependency.MyPlugin'
 }
 
 android {
@@ -70,6 +71,12 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }
 
-InjectClassCode {
-   injectCode = """ android.widget.Toast.makeText(this, "test inject Toast code", android.widget.Toast.LENGTH_SHORT).show();"""
+//DependenciesPluginExtension extension = project.getExtensions().create("printDependencies", DependenciesPluginExtension.class)
+printDependencies {
+    enable = true
 }
+
+//def extension = project.extensions.create("InjectClassCode", InjectClassExtension)
+//InjectClassCode {
+//   injectCode = """ android.widget.Toast.makeText(this, "test inject Toast code", android.widget.Toast.LENGTH_SHORT).show();"""
+//}

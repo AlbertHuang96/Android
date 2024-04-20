@@ -4,7 +4,7 @@ import org.gradle.api.Project
 import javassist.*
 
 class InjectClass {
-    private final static ClassPool pool = ClassPool.getDefault();
+    private final static ClassPool pool = ClassPool.getDefault()
     static void inject(String path, Project project, String injectCode) {
         println("filePath = "+path)
         pool.appendClassPath(path)
@@ -16,13 +16,23 @@ class InjectClass {
                 if (file.getName().equals("MainActivity.class")) {
                     CtClass ctClass = pool.getCtClass("com.example.renderplayground.MainActivity")
                     println("ctClass = " + ctClass)
+
                     if (ctClass.isFrozen()) ctClass.defrost()
+
+                    //getDeclaredMethod vs getMethod
+                    // getDeclaredMethod cannot get its parent's public method
                     CtMethod ctMethod = ctClass.getDeclaredMethod("onCreate")
                     println("Method name = " + ctMethod)
                     println("injectCode = " + injectCode)
+
+                    //ctMethod.insertAt
                     //ctMethod.insertBefore(injectCode)
                     ctMethod.insertAfter(injectCode)
+
                     ctClass.writeFile(path)
+                    // ctClass generate .class file
+
+                    // release memory from classpool
                     ctClass.detach()
                 }
             }

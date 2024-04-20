@@ -1,0 +1,51 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'groovy'
+}
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation 'com.android.tools.build:gradle:7.0.2'
+}
+
+repositories {
+    maven { url 'https://maven.aliyun.com/repository/google' }
+    maven { url 'https://maven.aliyun.com/repository/public/' }
+    //maven { url 'https://maven.aliyun.com/nexus/content/groups/public' }
+    //google()
+    //mavenCentral()
+}
+
+group 'com.example.printdependency'
+version '1.0.0'
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = group
+            artifactId = 'MyPlugin'
+            version = version
+
+            from components.java
+            //components.all components.java components.release, web
+            //android jar: Could not get unknown property 'java' for SoftwareComponentInternal set of type org.gradle
+            //https://blog.csdn.net/sinat_27171121/article/details/123989140
+        }
+    }
+    repositories {
+        //maven { url uri("../maven-repo") }
+        maven { url uri("build/maven-repo") }
+    }
+
+}
+
+gradlePlugin {
+    plugins {
+        DependenciesPlugin {
+            id = 'com.example.printdependency.MyPlugin'
+            implementationClass = 'com.example.printdependency.DependenciesPlugin'
+        }
+    }
+}
